@@ -1,0 +1,3117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VetReady — Pet Health Triage</title>
+<meta name="theme-color" content="#C85A17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VetReady">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="VetReady">
+<meta name="description" content="Pet Health Triage App — Know when to wait. Know when to go.">
+<link id="pwa-manifest" rel="manifest">
+<link id="apple-touch-icon" rel="apple-touch-icon">
+<style>
+:root{--dark:#1E0F06;--primary:#C85A17;--primary2:#E07A3A;--amber:#D4A84B;--beige:#F5EFE3;--beige-mid:#EDE1CC;--beige-deep:#D9C9AD;--white:#FFFFFF;--body:#2D1A0E;--muted:#7A5C3A;--success:#4A7C59;--danger:#B94040;--warning:#C8891A;--vet-blue:#1A4A7A;--vet-light:#E8F0FA;--radius:14px;--shadow:0 2px 16px rgba(30,15,6,.10)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--beige);color:var(--body);min-height:100vh;-webkit-font-smoothing:antialiased}
+#app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--beige);position:relative}
+.page{display:none;min-height:100vh;flex-direction:column;overflow-x:hidden}
+.page.active{display:flex;animation:pgIn .22s cubic-bezier(.25,.46,.45,.94)}
+.page.active.slide-back{animation:pgInBack .22s cubic-bezier(.25,.46,.45,.94)}
+@keyframes pgIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pgInBack{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:translateX(0)}}
+.top-nav{background:var(--dark);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.top-nav .logo{font-size:22px;font-weight:700;color:var(--white);letter-spacing:-.5px}
+.top-nav .logo span{color:var(--primary2)}
+.nav-back{color:var(--beige-mid);background:none;border:none;font-size:15px;cursor:pointer;padding:4px 0}
+.nav-back:hover{color:var(--white)}
+.nav-btn{background:none;border:none;color:var(--beige-mid);cursor:pointer;font-size:14px;font-family:inherit}
+.nav-btn:hover{color:var(--white)}
+.hero{background:var(--dark);padding:60px 28px 48px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;width:260px;height:260px;background:var(--primary);opacity:.12;border-radius:50%;top:-80px;right:-80px}
+.hero::after{content:'';position:absolute;width:180px;height:180px;background:var(--amber);opacity:.10;border-radius:50%;bottom:-40px;left:-40px}
+.hero h1{font-size:40px;font-weight:800;color:var(--white);line-height:1.1;position:relative;z-index:1}
+.hero h1 span{color:var(--primary2)}
+.hero p{margin-top:14px;color:#C9A880;font-size:16px;line-height:1.5;position:relative;z-index:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;border:none;transition:all .18s;width:100%;text-align:center;font-family:inherit}
+.btn-primary{background:var(--primary);color:var(--white)}
+.btn-primary:hover{background:#B04E13}
+.btn-secondary{background:var(--white);color:var(--primary);border:2px solid var(--primary)}
+.btn-secondary:hover{background:#FFF0E8}
+.btn-dark{background:var(--dark);color:var(--white)}
+.btn-danger{background:var(--danger);color:var(--white)}
+.btn-vet{background:var(--vet-blue);color:var(--white)}
+.btn-vet:hover{background:#163d68}
+.btn-green{background:var(--success);color:var(--white)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:14px}
+.card-beige{background:var(--beige-mid)}
+.card-dark{background:var(--dark);color:var(--white)}
+.card-vet{background:var(--vet-light);border:1.5px solid #B8D0EC}
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:14px;font-weight:600;color:var(--body);margin-bottom:6px}
+.form-control{width:100%;padding:13px 16px;border:1.5px solid var(--beige-deep);border-radius:var(--radius);font-size:15px;color:var(--body);background:var(--white);transition:border-color .15s;outline:none;font-family:inherit}
+.form-control:focus{border-color:var(--primary)}
+.form-control::placeholder{color:#B09070}
+textarea.form-control{resize:vertical;min-height:100px}
+select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237A5C3A' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.section-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+.pet-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent}
+.pet-card:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(30,15,6,.14)}
+.pet-avatar{width:52px;height:52px;border-radius:50%;background:var(--beige-mid);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;overflow:hidden}
+.pet-avatar img{width:100%;height:100%;object-fit:cover}
+.pet-info{flex:1}
+.pet-name{font-size:17px;font-weight:700;color:var(--body)}
+.pet-meta{font-size:13px;color:var(--muted);margin-top:2px}
+.icon-btn{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;font-size:16px;transition:background .15s}
+.icon-btn:hover{background:var(--beige-mid)}
+.step-bar{display:flex;gap:6px;padding:16px 20px 0}
+.step-dot{height:4px;flex:1;border-radius:2px;background:var(--beige-deep);transition:background .2s}
+.step-dot.active{background:var(--primary)}
+.step-dot.done{background:var(--primary2)}
+.result-banner{padding:28px 24px;border-radius:0 0 24px 24px;text-align:center;position:relative;overflow:hidden}
+.result-banner::before{content:'';position:absolute;width:200px;height:200px;border-radius:50%;opacity:.15;top:-60px;right:-60px}
+.result-banner.green{background:#2D5A3D}
+.result-banner.green::before{background:#7FD5A0}
+.result-banner.yellow{background:#7A5200}
+.result-banner.yellow::before{background:#F5C842}
+.result-banner.red{background:#7A1E1E}
+.result-banner.red::before{background:#F5A0A0}
+.result-icon{font-size:52px;display:block;margin-bottom:10px}
+.result-level{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:6px}
+.result-condition{font-size:22px;font-weight:800;color:#fff;line-height:1.2}
+.result-action{margin-top:10px;font-size:14px;color:rgba(255,255,255,.85);line-height:1.5}
+.do-dont-list{margin-top:6px}
+.do-dont-list li{display:flex;align-items:flex-start;gap:10px;padding:8px 0;font-size:14px;color:var(--body);border-bottom:1px solid var(--beige-mid)}
+.do-dont-list li:last-child{border-bottom:none}
+.do-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.do-dot.do{background:#D4EDDA;color:var(--success)}
+.do-dot.dont{background:#F8D7DA;color:var(--danger)}
+.resource-card{background:var(--dark);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.resource-card .label{color:var(--beige-mid);font-size:13px}
+.resource-card .phone{color:var(--white);font-size:18px;font-weight:700}
+.call-btn{background:var(--primary);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+.history-item{background:var(--white);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .15s,transform .12s}
+.history-item:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(30,15,6,.14)}
+.history-item:active{transform:translateY(0);box-shadow:var(--shadow)}
+.level-badge{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.level-badge.green{background:#D4EDDA;color:var(--success)}
+.level-badge.yellow{background:#FFF3CD;color:var(--warning)}
+.level-badge.red{background:#F8D7DA;color:var(--danger)}
+.history-info{flex:1}
+.history-condition{font-size:15px;font-weight:600}
+.history-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--dark);display:flex;padding:10px 0 14px;border-top:1px solid rgba(255,255,255,.08);z-index:20}
+.bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px;background:none;border:none;color:#6B4A2A;transition:color .15s;font-size:12px;font-family:inherit}
+.bottom-nav-item.active{color:var(--primary2)}
+.bottom-nav-item svg{width:22px;height:22px;display:block;transition:color .15s}
+.bottom-nav-item:hover{color:var(--beige-mid)}
+.nav-icon{font-size:22px;line-height:1}
+.choice-option{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--white);border:2px solid var(--beige-deep);border-radius:var(--radius);margin-bottom:10px;cursor:pointer;transition:all .15s;font-size:15px;font-weight:500;color:var(--body);width:100%;text-align:left}
+.choice-option:hover{border-color:var(--primary2);background:#FFF6F0}
+.choice-option.selected{border-color:var(--primary);background:#FFF0E8;color:var(--primary)}
+.species-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px}
+.species-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;background:var(--white);border:2px solid var(--beige-deep);border-radius:var(--radius);cursor:pointer;transition:all .15s;font-size:12px;font-weight:600;color:var(--body)}
+.species-item .emoji{font-size:24px}
+.species-item:hover{border-color:var(--primary2);background:#FFF6F0}
+.species-item.selected{border-color:var(--primary);background:#FFF0E8;color:var(--primary)}
+.auth-page{background:var(--dark);min-height:100vh;display:flex;flex-direction:column}
+.auth-header{padding:60px 28px 32px;text-align:center}
+.auth-header h1{color:var(--white);font-size:32px;font-weight:800}
+.auth-header p{color:#C9A880;font-size:15px;margin-top:8px}
+.auth-body{background:var(--beige);border-radius:24px 24px 0 0;flex:1;padding:32px 24px 40px}
+.error-msg{background:#F8D7DA;color:var(--danger);border-radius:10px;padding:12px 16px;font-size:14px;margin-bottom:16px}
+.success-msg{background:#D4EDDA;color:var(--success);border-radius:10px;padding:12px 16px;font-size:14px;margin-bottom:16px}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--dark);color:var(--white);padding:12px 22px;border-radius:50px;font-size:14px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+.spinner{width:36px;height:36px;border:3px solid var(--beige-mid);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;margin:30px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:50px 30px;color:var(--muted)}
+.empty-icon{font-size:54px;margin-bottom:14px}
+.empty-state h3{font-size:20px;color:var(--body);margin-bottom:8px}
+.empty-state p{font-size:14px;line-height:1.6;margin-bottom:24px}
+.divider{height:1px;background:var(--beige-mid);margin:20px 0}
+.text-center{text-align:center}
+.text-muted{color:var(--muted);font-size:14px}
+.mt-8{margin-top:8px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}.mb-8{margin-bottom:8px}.mb-16{margin-bottom:16px}
+.pill{display:inline-block;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:600}
+.symptom-tag{display:inline-block;padding:7px 14px;border-radius:50px;background:var(--beige-mid);color:var(--body);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid var(--beige-deep)}
+.symptom-tag:hover,.symptom-tag.used{border-color:var(--primary);background:#FFF0E8;color:var(--primary)}
+.symptom-tag.used{background:var(--primary);color:var(--white)}
+/* PHOTO UPLOAD */
+.photo-upload-area{border:2px dashed var(--beige-deep);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--white)}
+.photo-upload-area:hover{border-color:var(--primary)}
+.photo-preview-circle{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--primary2);margin:0 auto 10px;display:block}
+.pet-detail-photo{width:110px;height:110px;border-radius:50%;object-fit:cover;border:4px solid var(--primary2);flex-shrink:0}
+.pet-detail-photo-placeholder{width:110px;height:110px;border-radius:50%;background:var(--beige-mid);display:flex;align-items:center;justify-content:center;font-size:52px;flex-shrink:0}
+/* DETAIL ROWS */
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--beige-mid);font-size:14px}
+.detail-row:last-child{border-bottom:none}
+.detail-label{color:var(--muted);font-weight:600;font-size:13px}
+.detail-value{color:var(--body);font-weight:500;text-align:right;max-width:60%}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--beige);border-radius:24px 24px 0 0;padding:28px 24px 44px;width:100%;max-width:480px}
+.modal-title{font-size:20px;font-weight:800;margin-bottom:6px}
+.modal-sub{font-size:14px;color:var(--muted);margin-bottom:20px}
+.share-url-box{background:var(--white);border:1.5px solid var(--beige-deep);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--muted);word-break:break-all;margin-bottom:14px;line-height:1.5}
+/* VET PORTAL */
+.vet-header{background:var(--vet-blue);padding:20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.vet-logo{font-size:20px;font-weight:800;color:var(--white)}
+.vet-logo span{color:#7EB8F7}
+.vet-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(126,184,247,.2);border:1px solid rgba(126,184,247,.4);color:#7EB8F7;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700;letter-spacing:.5px}
+.intake-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:12px;cursor:pointer;transition:transform .15s;border-left:4px solid var(--beige-deep)}
+.intake-card:hover{transform:translateY(-1px)}
+.intake-card.red-border{border-left-color:var(--danger)}
+.intake-card.yellow-border{border-left-color:var(--warning)}
+.intake-card.green-border{border-left-color:var(--success)}
+.intake-title{font-size:16px;font-weight:700}
+.intake-meta{font-size:13px;color:var(--muted);margin-top:3px}
+/* PIN INPUT */
+.pin-row{display:flex;gap:10px;justify-content:center;margin:20px 0}
+.pin-box{width:52px;height:64px;border:2px solid var(--beige-deep);border-radius:12px;font-size:28px;font-weight:800;text-align:center;color:var(--body);background:var(--white);outline:none;font-family:inherit}
+.pin-box:focus{border-color:var(--vet-blue)}
+/* NEARBY */
+.vet-type-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .15s;border:2px solid transparent}
+.vet-type-card:hover{border-color:var(--primary2);transform:translateY(-1px)}
+.vet-type-card.selected-vet{border-color:var(--primary);background:#FFF0E8;transform:none;}
+.vet-type-icon{font-size:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:40px}
+/* VET RESULTS */
+.vet-result-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent}
+.vet-result-card:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(30,15,6,.14)}
+.vet-result-card:active{transform:translateY(0);box-shadow:var(--shadow)}
+.open-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px}
+.open-badge.open{background:#D4EDDA;color:#1F6B3E}
+.open-badge.closed{background:#F8D7DA;color:#9B2226}
+.open-badge.allday{background:#D4EDDA;color:#1F6B3E}
+.open-badge.unknown{background:var(--beige-mid);color:var(--muted)}
+/* PRINT */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body,html{margin:0;padding:0;background:#fff!important}
+  #app,.modal-overlay,#toast,.page{display:none!important}
+  #print-frame{display:block!important}
+}
+#print-frame{
+  display:none;font-family:Arial,Helvetica,sans-serif;
+  max-width:760px;margin:0 auto;padding:24px 40px 32px;color:#000;font-size:10pt;line-height:1.45;
+}
+/* header */
+#print-frame .pf-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+#print-frame .pf-logo{font-size:20pt;font-weight:900;color:#1E0F06;letter-spacing:-.5px;}
+#print-frame .pf-logo span{color:#C85A17;}
+#print-frame .pf-tagline{font-size:8pt;color:#777;margin-top:1px;}
+#print-frame .pf-date-block{text-align:right;font-size:9pt;color:#555;}
+#print-frame .pf-title{text-align:center;font-size:15pt;font-weight:900;letter-spacing:.5px;text-transform:uppercase;margin:6px 0 3px;}
+#print-frame .pf-subtitle{text-align:center;font-size:8.5pt;color:#666;margin-bottom:12px;}
+#print-frame .pf-rule{border:none;border-top:2px solid #C85A17;margin:0 0 14px;}
+/* triage alert */
+#print-frame .pf-alert{border-radius:5px;padding:11px 16px;margin-bottom:16px;}
+#print-frame .pf-alert.red{background:#7A1E1E;color:#fff;}
+#print-frame .pf-alert.yellow{background:#7A5200;color:#fff;}
+#print-frame .pf-alert.green{background:#2D5A3D;color:#fff;}
+#print-frame .pf-alert-level{font-size:7.5pt;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-bottom:3px;}
+#print-frame .pf-alert-condition{font-size:14pt;font-weight:800;line-height:1.2;}
+#print-frame .pf-alert-action{font-size:9.5pt;opacity:.9;margin-top:5px;font-weight:600;}
+/* section headers */
+#print-frame .pf-sec{background:#D8E4F0;border:1px solid #B0C4DC;padding:5px 11px;font-weight:800;font-size:9.5pt;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 10px;}
+/* field rows */
+#print-frame .pf-row{display:flex;gap:18px;margin-bottom:11px;align-items:flex-end;}
+#print-frame .pf-f{flex:1;}
+#print-frame .pf-f .lbl{font-weight:700;font-size:8.5pt;margin-bottom:2px;color:#111;}
+#print-frame .pf-f .val{border-bottom:1.5px solid #222;min-height:17px;padding:1px 3px 2px;font-size:10pt;white-space:nowrap;overflow:hidden;}
+#print-frame .pf-f .val.blank{color:transparent;}
+/* checkboxes */
+#print-frame .pf-checkrow{display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:9.5pt;}
+#print-frame .pf-checkrow .lbl{font-weight:700;min-width:100px;}
+#print-frame .pf-checkrow .opts{display:flex;gap:14px;}
+#print-frame .pf-checkrow .opt{display:flex;align-items:center;gap:4px;}
+#print-frame .pf-cb{width:11px;height:11px;border:1.5px solid #222;display:inline-block;flex-shrink:0;position:relative;vertical-align:middle;}
+#print-frame .pf-cb.on::after{content:'✓';position:absolute;top:-4px;left:0;font-size:13px;font-weight:900;line-height:1;}
+/* text areas */
+#print-frame .pf-box{border:1.5px solid #999;min-height:48px;padding:6px 8px;font-size:9.5pt;margin-bottom:12px;line-height:1.5;}
+#print-frame .pf-box.tall{min-height:72px;}
+/* do/dont */
+#print-frame .pf-listhead{font-weight:700;font-size:9pt;margin:8px 0 4px;}
+#print-frame .pf-li{padding:3px 0 3px 18px;position:relative;font-size:9.5pt;border-bottom:1px solid #eee;}
+#print-frame .pf-li.do::before{content:'✓';position:absolute;left:0;font-weight:900;color:#2D5A3D;}
+#print-frame .pf-li.dont::before{content:'✕';position:absolute;left:0;font-weight:900;color:#B94040;}
+/* recommendation box */
+#print-frame .pf-rec{padding:10px 14px;background:#FFF8F0;border-left:4px solid #C85A17;margin-bottom:10px;font-size:9.5pt;}
+#print-frame .pf-rec strong{font-size:11pt;display:block;margin-bottom:3px;}
+/* footer */
+#print-frame .pf-footer{margin-top:18px;padding-top:10px;border-top:1.5px solid #C85A17;font-size:7.5pt;color:#888;text-align:center;}
+/* VAX */
+.vax-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.req-star{color:var(--danger);margin-left:2px}
+.vax-card{background:var(--vet-light);border:1.5px solid #B8D0EC;border-radius:var(--radius);padding:16px 18px;margin-bottom:14px}
+.vax-card-title{font-size:13px;font-weight:700;color:var(--vet-blue);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+/* registration */
+.tab-row{display:flex;gap:0;border-radius:var(--radius);overflow:hidden;border:2px solid #B8D0EC;margin-bottom:20px}
+.tab-btn{flex:1;padding:11px;font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all .15s;background:#E8F0FA;color:var(--vet-blue)}
+.tab-btn.active{background:var(--vet-blue);color:#fff}
+/* PET DETAIL TABS */
+.pet-tab-row{display:flex;border-bottom:2px solid var(--beige-mid);margin-bottom:0;background:var(--white);position:sticky;top:0;z-index:5;}
+.pet-tab{flex:1;padding:12px 6px;font-size:13px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit;transition:all .15s;letter-spacing:.3px;}
+.pet-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+/* MED CARDS */
+.med-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;border-left:4px solid var(--beige-deep);transition:transform .15s;}
+.med-card:hover{transform:translateY(-1px);}
+.med-card.due-today{border-left-color:var(--warning);}
+.med-card.overdue{border-left-color:var(--danger);}
+.med-icon{font-size:22px;flex-shrink:0;}
+.med-name{font-size:15px;font-weight:700;color:var(--body);}
+.med-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.med-due{font-size:12px;font-weight:700;margin-top:4px;}
+.med-due.due-today{color:var(--warning);}
+.med-due.overdue{color:var(--danger);}
+.med-due.ok{color:var(--success);}
+/* REMINDER BANNER */
+.reminder-banner{border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;}
+.reminder-banner.warn{background:#FFF3CD;border:1.5px solid var(--warning);}
+.reminder-banner.danger{background:#F8D7DA;border:1.5px solid var(--danger);}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ==================== SETUP ==================== -->
+<div id="page-setup" class="page auth-page">
+  <div class="auth-header">
+    <div style="font-size:40px;margin-bottom:12px;">🐾</div>
+    <h1>Welcome to VetReady</h1>
+    <p>Pet health triage in under 60 seconds</p>
+  </div>
+  <div class="auth-body">
+    <div class="form-group">
+      <label class="form-label">What's your name?</label>
+      <input id="setup-name" type="text" class="form-control" placeholder="e.g. Emily" autocomplete="given-name">
+    </div>
+    <button class="btn btn-primary" onclick="doSetup()">Get Started Free 🐾</button>
+    <p class="text-muted text-center mt-16" style="font-size:12px;line-height:1.6;">Supports dogs, cats, birds, rabbits, reptiles,<br>fish, small mammals &amp; horses</p>
+    <div class="divider"></div>
+    <button class="btn btn-vet" onclick="goVetPortal()">🏥 &nbsp;Veterinary Clinic Portal</button>
+  </div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div id="page-dashboard" class="page">
+  <div class="top-nav">
+    <div class="logo" style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 100 100" width="34" height="34"><ellipse cx="38" cy="20" rx="12" ry="14" fill="var(--primary2)"/><ellipse cx="62" cy="20" rx="12" ry="14" fill="var(--primary2)"/><ellipse cx="19" cy="39" rx="11" ry="13" fill="var(--primary2)"/><ellipse cx="81" cy="39" rx="11" ry="13" fill="var(--primary2)"/><ellipse cx="50" cy="70" rx="28" ry="22" fill="var(--primary2)"/><text x="50" y="77" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="22" fill="#1E0F06">VR</text></svg>Vet<span>Ready</span></div>
+    <button class="nav-btn" onclick="showPage('profile')" style="display:flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span id="nav-user-name"></span></button>
+  </div>
+  <div style="background:var(--dark);padding:20px 20px 28px;">
+    <p style="color:#C9A880;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Good to see you,</p>
+    <h2 style="color:var(--white);font-size:24px;font-weight:800;" id="dash-greeting">there 👋</h2>
+    <p style="color:#A07850;font-size:13px;margin-top:6px;">Select a pet below or start a new check.</p>
+  </div>
+  <div style="padding:20px;padding-bottom:90px;overflow-y:auto;">
+    <div id="med-reminder-banner" style="display:none;"></div>
+    <button class="btn btn-primary mb-16" onclick="startTriage(null)">Start Symptom Check</button>
+    <div class="section-title">My Pets</div>
+    <div id="pets-list"></div>
+    <button class="btn btn-secondary" onclick="showPage('add-pet')" style="margin-top:4px;">+ Add Pet</button>
+    <div class="divider"></div>
+    <button class="btn" style="background:var(--beige-mid);color:var(--body);margin-bottom:8px;" onclick="showPage('vets-nearby')">📍 &nbsp;Find Vets Nearby</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;margin-bottom:12px;">
+      <div class="section-title" style="margin-bottom:0;">Recent Checks</div>
+      <button onclick="showPage('history')" style="background:none;border:none;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;padding:4px 0;">See All →</button>
+    </div>
+    <div id="history-preview"></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="bottom-nav-item active" onclick="showPage('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><polyline points="5,10 5,20 10,20 10,14 14,14 14,20 19,20 19,10"/></svg><span>Home</span></button>
+    <button class="bottom-nav-item" onclick="startTriage(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,12 6,12 8,5 11,19 14,10 16,14 18,12 21,12"/></svg><span>Check</span></button>
+    <button class="bottom-nav-item" onclick="showPage('vets-nearby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/></svg><span>Vets</span></button>
+    <button class="bottom-nav-item" onclick="showPage('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg><span>History</span></button>
+    <button class="bottom-nav-item" onclick="showPage('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Profile</span></button>
+  </div>
+</div>
+
+<!-- ==================== ADD / EDIT PET ==================== -->
+<div id="page-add-pet" class="page">
+  <div class="top-nav">
+    <button class="nav-back" onclick="cancelAddPet()">← Back</button>
+    <div class="logo" id="add-pet-title">Add Pet</div>
+    <div></div>
+  </div>
+  <div style="padding:24px;padding-bottom:40px;overflow-y:auto;flex:1;">
+    <div id="add-pet-error" class="error-msg" style="display:none;"></div>
+    <!-- Photo Upload -->
+    <div class="form-group">
+      <label class="form-label">Pet Photo <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <div class="photo-upload-area" onclick="document.getElementById('pet-photo-input').click()">
+        <img id="pet-photo-preview" class="photo-preview-circle" style="display:none;" src="" alt="Pet photo">
+        <div id="photo-placeholder">
+          <div style="font-size:36px;margin-bottom:6px;">📷</div>
+          <p style="font-size:14px;color:var(--muted);">Tap to add a photo</p>
+        </div>
+      </div>
+      <input id="pet-photo-input" type="file" accept="image/*" style="display:none;" onchange="uploadPetPhoto(this)">
+      <input id="pet-photo-data" type="hidden" value="">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pet Name *</label>
+      <input id="pet-name" type="text" class="form-control" placeholder="e.g. Bella">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Species *</label>
+      <div class="species-grid">
+        <div class="species-item" onclick="selectSpecies('dog',this)"><span class="emoji">🐕</span>Dog</div>
+        <div class="species-item" onclick="selectSpecies('cat',this)"><span class="emoji">🐈</span>Cat</div>
+        <div class="species-item" onclick="selectSpecies('bird',this)"><span class="emoji">🐦</span>Bird</div>
+        <div class="species-item" onclick="selectSpecies('rabbit',this)"><span class="emoji">🐇</span>Rabbit</div>
+        <div class="species-item" onclick="selectSpecies('reptile',this)"><span class="emoji">🦎</span>Reptile</div>
+        <div class="species-item" onclick="selectSpecies('fish',this)"><span class="emoji">🐟</span>Fish</div>
+        <div class="species-item" onclick="selectSpecies('small mammal',this)"><span class="emoji">🐹</span>Small</div>
+        <div class="species-item" onclick="selectSpecies('horse',this)"><span class="emoji">🐴</span>Horse</div>
+      </div>
+      <input id="pet-species" type="hidden" value="">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Breed <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <input id="pet-breed" type="text" class="form-control" placeholder="e.g. Golden Retriever">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Age (years)</label>
+        <input id="pet-age" type="number" class="form-control" placeholder="e.g. 3" min="0" step="0.5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Weight (lbs)</label>
+        <input id="pet-weight" type="number" class="form-control" placeholder="e.g. 25" min="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Color / Markings <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <input id="pet-color" type="text" class="form-control" placeholder="e.g. Golden with white paws">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sex</label>
+      <select id="pet-sex" class="form-control">
+        <option value="">Not specified</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Male (neutered)">Male (neutered)</option>
+        <option value="Female (spayed)">Female (spayed)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Microchip # <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <input id="pet-microchip" type="text" class="form-control" placeholder="e.g. 985112345678900">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Medical Notes <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <textarea id="pet-notes" class="form-control" placeholder="Allergies, conditions, vet name..."></textarea>
+    </div>
+    <!-- Vaccine Records -->
+    <div class="vax-card" style="margin-top:4px;">
+      <div class="vax-card-title">Vaccine Records <span style="font-size:12px;font-weight:400;color:var(--muted);">(optional — date last given)</span></div>
+      <div class="vax-row">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Rabies</label>
+          <input id="vax-rabies" type="date" class="form-control" style="font-size:14px;">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">DHPP / FVRCP</label>
+          <input id="vax-core" type="date" class="form-control" style="font-size:14px;">
+        </div>
+      </div>
+      <div class="vax-row">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Bordetella</label>
+          <input id="vax-bordetella" type="date" class="form-control" style="font-size:14px;">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Leptospirosis</label>
+          <input id="vax-lepto" type="date" class="form-control" style="font-size:14px;">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0;margin-top:4px;">
+        <label class="form-label" style="font-size:12px;">Other Vaccines</label>
+        <input id="vax-other" type="text" class="form-control" placeholder="e.g. Lyme 2024-03-01, FeLV 2024-02-15">
+      </div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:16px;" onclick="savePet()">Save Pet</button>
+    <button id="delete-pet-btn" class="btn btn-danger mt-8" style="display:none;" onclick="deleteCurrentEditPet()">Delete Pet</button>
+  </div>
+</div>
+
+<!-- ==================== PET DETAIL ==================== -->
+<div id="page-pet-detail" class="page">
+  <div class="top-nav">
+    <button class="nav-back" onclick="goBack()">← Back</button>
+    <div class="logo">Pet Profile</div>
+    <button class="nav-btn" onclick="editCurrentPet()">Edit</button>
+  </div>
+  <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;">
+    <div style="padding:20px 24px 16px;background:var(--dark);">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div id="detail-photo-wrap"></div>
+        <div>
+          <h2 style="font-size:24px;font-weight:800;color:var(--white);" id="detail-name"></h2>
+          <p style="color:#C9A880;font-size:14px;margin-top:3px;" id="detail-species-breed"></p>
+          <span id="detail-age-pill" class="pill mt-8" style="background:rgba(200,90,23,.3);color:var(--primary2);"></span>
+        </div>
+      </div>
+    </div>
+    <div class="pet-tab-row">
+      <button class="pet-tab active" onclick="switchPetTab('profile',this)">Profile</button>
+      <button class="pet-tab" onclick="switchPetTab('vaccines',this)">Vaccines</button>
+      <button class="pet-tab" onclick="switchPetTab('meds',this)">Medications</button>
+    </div>
+    <!-- Profile Tab -->
+    <div id="pet-tab-profile" style="padding:20px 24px 100px;">
+      <div class="card" style="padding:16px 20px;">
+        <div id="detail-rows"></div>
+      </div>
+      <div id="detail-notes-wrap" style="display:none;">
+        <div class="section-title mt-16">Medical Notes</div>
+        <div class="card card-beige" style="padding:16px;">
+          <p id="detail-notes" style="font-size:14px;line-height:1.6;color:var(--body);"></p>
+        </div>
+      </div>
+      <button class="btn btn-primary mt-16" onclick="startTriageForDetail()">Start Symptom Check</button>
+      <button class="btn btn-secondary mt-8" onclick="editCurrentPet()">Edit Profile</button>
+    </div>
+    <!-- Vaccines Tab -->
+    <div id="pet-tab-vaccines" style="display:none;padding:20px 24px 100px;">
+      <div id="detail-vaccines-content"></div>
+      <button class="btn btn-secondary mt-8" onclick="editCurrentPet()">Update Vaccine Records</button>
+    </div>
+    <!-- Meds Tab -->
+    <div id="pet-tab-meds" style="display:none;padding:20px 24px 100px;">
+      <div id="detail-meds-content"></div>
+      <button class="btn btn-primary mt-8" onclick="showAddMed()">+ Add Medication</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TRIAGE 1 ==================== -->
+<div id="page-triage-1" class="page">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showPage('dashboard')">← Cancel</button>
+    <div class="logo">Symptom Check</div>
+    <div></div>
+  </div>
+  <div class="step-bar"><div class="step-dot active"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+  <div style="padding:24px;overflow-y:auto;flex:1;">
+    <h2 style="font-size:22px;font-weight:800;margin-bottom:6px;">Which pet needs help?</h2>
+    <p class="text-muted mb-16">Select a saved pet or describe a different one</p>
+    <div id="triage-pet-select"></div>
+    <div class="divider"></div>
+    <p style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Or a different pet</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Pet name</label>
+        <input id="triage-pet-name" type="text" class="form-control" placeholder="Buddy">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Species</label>
+        <select id="triage-pet-species" class="form-control">
+          <option value="dog">Dog 🐕</option>
+          <option value="cat">Cat 🐈</option>
+          <option value="bird">Bird 🐦</option>
+          <option value="rabbit">Rabbit 🐇</option>
+          <option value="reptile">Reptile 🦎</option>
+          <option value="fish">Fish 🐟</option>
+          <option value="small mammal">Small Mammal 🐹</option>
+          <option value="horse">Horse 🐴</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary mt-8" onclick="goToTriageStep2()">Next →</button>
+  </div>
+</div>
+
+<!-- ==================== TRIAGE 2 ==================== -->
+<div id="page-triage-2" class="page">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showPage('triage-1')">← Back</button>
+    <div class="logo">Describe Issue</div>
+    <div></div>
+  </div>
+  <div class="step-bar"><div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div></div>
+  <div style="padding:24px;overflow-y:auto;flex:1;">
+    <div id="triage-pet-banner" style="display:flex;align-items:center;gap:12px;background:var(--dark);border-radius:14px;padding:14px 16px;margin-bottom:20px;">
+      <div id="triage-banner-emoji" style="font-size:28px;"></div>
+      <div>
+        <div style="color:var(--white);font-weight:700;font-size:16px;" id="triage-banner-name"></div>
+        <div style="color:#C9A880;font-size:13px;" id="triage-banner-species"></div>
+      </div>
+    </div>
+    <h2 style="font-size:20px;font-weight:800;margin-bottom:6px;">What's going on?</h2>
+    <p class="text-muted mb-16" style="font-size:14px;">Describe the symptoms in plain language.</p>
+    <div class="form-group">
+      <label class="form-label">Symptoms &amp; Concerns *</label>
+      <textarea id="triage-symptoms" class="form-control" placeholder="e.g. My dog ate some grapes about 20 minutes ago and seems fine but I'm worried..." style="min-height:130px;"></textarea>
+    </div>
+    <p class="form-label mb-16 mt-8">Quick select (tap to add):</p>
+    <div id="quick-tags" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+    <button class="btn btn-primary" onclick="goToTriageStep3()">Next: Quick Questions →</button>
+  </div>
+</div>
+
+<!-- ==================== TRIAGE 3 ==================== -->
+<div id="page-triage-3" class="page">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showPage('triage-2')">← Back</button>
+    <div class="logo">Quick Questions</div>
+    <div></div>
+  </div>
+  <div class="step-bar"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div></div>
+  <div style="padding:24px;overflow-y:auto;flex:1;">
+    <h2 style="font-size:20px;font-weight:800;margin-bottom:4px;">A few quick questions</h2>
+    <p class="text-muted mb-16" style="font-size:14px;">Helps us give a more accurate recommendation.</p>
+    <div id="follow-up-questions"></div>
+    <button class="btn btn-primary mt-16" id="submit-btn" onclick="submitTriage()">Get My Recommendation →</button>
+  </div>
+</div>
+
+<!-- ==================== RESULT ==================== -->
+<div id="page-result" class="page print-target">
+  <div class="print-header">
+    <h1>🐾 VetReady — Pet Intake Form</h1>
+    <p>Generated by VetReady Pet Health Triage · vetready.app</p>
+  </div>
+  <div class="top-nav no-print" style="background:var(--dark);">
+    <button class="nav-back" onclick="showPage('dashboard')" style="color:var(--beige-mid);">✕ Done</button>
+    <div class="logo">Your Result</div>
+    <button class="nav-btn" onclick="startTriage(null)">New Check</button>
+  </div>
+  <div id="result-banner" class="result-banner green">
+    <span class="result-icon" id="result-icon"></span>
+    <div class="result-level" id="result-level-text"></div>
+    <div class="result-condition" id="result-condition"></div>
+    <div class="result-action" id="result-action-banner"></div>
+  </div>
+  <div style="padding:20px;padding-bottom:40px;overflow-y:auto;">
+    <!-- Share / Print row -->
+    <div class="no-print" style="display:flex;gap:10px;margin-bottom:20px;">
+      <button class="btn btn-secondary" style="flex:1;font-size:14px;padding:12px;" onclick="openShareModal()">📤 Share with Vet</button>
+      <button class="btn" style="flex:1;font-size:14px;padding:12px;background:var(--beige-mid);color:var(--body);" onclick="printIntake()">🖨️ Print / PDF</button>
+    </div>
+    <!-- Pet info (for print) -->
+    <div id="result-pet-info" style="display:none;" class="card card-beige" style="margin-bottom:20px;">
+      <div id="result-pet-info-content"></div>
+    </div>
+    <div id="result-resources" style="display:none;margin-bottom:20px;">
+      <div class="section-title">🚨 Emergency Resources</div>
+      <div id="result-resources-list"></div>
+      <a id="find-vet-link" href="https://www.google.com/maps/search/emergency+vet+near+me" target="_blank" style="text-decoration:none;">
+        <button class="btn btn-danger mt-8">📍 Find Nearest Emergency Vet</button>
+      </a>
+    </div>
+    <div id="result-do-section" style="margin-bottom:20px;">
+      <div class="section-title">✅ Do This</div>
+      <div class="card"><ul class="do-dont-list" id="result-do-list"></ul></div>
+    </div>
+    <div id="result-dont-section" style="margin-bottom:20px;display:none;">
+      <div class="section-title">❌ Do NOT Do This</div>
+      <div class="card"><ul class="do-dont-list" id="result-dont-list"></ul></div>
+    </div>
+    <div class="card card-beige" style="margin-bottom:20px;">
+      <div class="section-title" style="margin-bottom:8px;">📋 Full Recommendation</div>
+      <p id="result-full-action" style="font-size:14px;color:var(--body);line-height:1.6;"></p>
+    </div>
+    <p class="text-muted text-center" style="font-size:12px;line-height:1.6;padding:0 12px 20px;">⚠️ VetReady is a triage guidance tool, not a substitute for professional veterinary advice. When in doubt, always call or visit your vet.</p>
+    <button class="btn btn-secondary no-print" onclick="startTriage(null)">Run Another Check</button>
+    <button class="btn btn-dark mt-8 no-print" onclick="showPage('dashboard')">Back to Home</button>
+  </div>
+</div>
+
+<!-- ==================== HISTORY ==================== -->
+<div id="page-history" class="page">
+  <div class="top-nav">
+    <div style="width:44px;"></div>
+    <div class="logo" style="font-size:18px;">Health History</div>
+    <div style="width:44px;"></div>
+  </div>
+  <div style="padding:16px 20px 90px;overflow-y:auto;flex:1;">
+    <div id="history-list"></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="bottom-nav-item" onclick="showPage('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><polyline points="5,10 5,20 10,20 10,14 14,14 14,20 19,20 19,10"/></svg><span>Home</span></button>
+    <button class="bottom-nav-item" onclick="startTriage(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,12 6,12 8,5 11,19 14,10 16,14 18,12 21,12"/></svg><span>Check</span></button>
+    <button class="bottom-nav-item" onclick="showPage('vets-nearby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/></svg><span>Vets</span></button>
+    <button class="bottom-nav-item active" onclick="showPage('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg><span>History</span></button>
+    <button class="bottom-nav-item" onclick="showPage('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Profile</span></button>
+  </div>
+</div>
+
+<!-- ==================== PROFILE ==================== -->
+<div id="page-profile" class="page">
+  <div class="top-nav">
+    <div style="width:44px;"></div>
+    <div class="logo" style="font-size:18px;">My Profile</div>
+    <div style="width:44px;"></div>
+  </div>
+  <div style="padding:20px;padding-bottom:90px;overflow-y:auto;flex:1;">
+    <div class="card card-dark" style="margin-bottom:20px;text-align:center;padding:28px;">
+      <div style="font-size:50px;margin-bottom:12px;">👤</div>
+      <div style="font-size:20px;font-weight:800;color:var(--white);" id="profile-name"></div>
+      <div style="margin-top:16px;"><span class="pill" style="background:rgba(200,90,23,.3);color:var(--primary2);">VetReady Free</span></div>
+    </div>
+
+    <!-- My Pets section -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="section-title" style="margin-bottom:0;">My Pets</div>
+      <button onclick="showPage('add-pet')" style="background:none;border:none;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;padding:4px 0;">+ Add Pet</button>
+    </div>
+    <div id="profile-pets-list" style="margin-bottom:8px;"></div>
+
+    <div class="divider"></div>
+    <div class="section-title">Quick Contacts</div>
+    <div class="card" style="padding:0;">
+      <div style="padding:16px 18px;border-bottom:1px solid var(--beige-mid);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:15px;font-weight:600;">Pet Poison Control</span>
+        <a href="tel:8557647661" style="color:var(--primary);font-weight:700;text-decoration:none;">855-764-7661</a>
+      </div>
+      <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:15px;font-weight:600;">ASPCA Poison Control</span>
+        <a href="tel:8884264435" style="color:var(--primary);font-weight:700;text-decoration:none;">888-426-4435</a>
+      </div>
+    </div>
+    <div class="section-title mt-24">Tools</div>
+    <button class="btn" style="background:var(--beige-mid);color:var(--body);margin-bottom:10px;" onclick="showPage('vets-nearby')">📍 Find Vets Nearby</button>
+    <button class="btn btn-vet" onclick="goVetPortal()">🏥 Veterinary Clinic Portal</button>
+    <div class="section-title mt-24">About</div>
+    <div class="card" style="padding:16px 18px;">
+      <p style="font-size:14px;color:var(--muted);line-height:1.6;">VetReady is a pet health triage tool for guidance only. Always consult a licensed veterinarian for diagnosis and treatment.</p>
+      <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-top:8px;">Version 2.0 · vetready.app</p>
+    </div>
+    <button class="btn btn-secondary mt-16" style="color:var(--danger);border-color:var(--danger);" onclick="clearData()">Clear All Data</button>
+  </div>
+  <div class="bottom-nav">
+    <button class="bottom-nav-item" onclick="showPage('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><polyline points="5,10 5,20 10,20 10,14 14,14 14,20 19,20 19,10"/></svg><span>Home</span></button>
+    <button class="bottom-nav-item" onclick="startTriage(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,12 6,12 8,5 11,19 14,10 16,14 18,12 21,12"/></svg><span>Check</span></button>
+    <button class="bottom-nav-item" onclick="showPage('vets-nearby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/></svg><span>Vets</span></button>
+    <button class="bottom-nav-item" onclick="showPage('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg><span>History</span></button>
+    <button class="bottom-nav-item active" onclick="showPage('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Profile</span></button>
+  </div>
+</div>
+
+<!-- ==================== VETS NEARBY ==================== -->
+<div id="page-vets-nearby" class="page">
+  <div class="top-nav">
+    <div style="width:44px;"></div>
+    <div class="logo" style="font-size:18px;">Find Vets</div>
+    <div style="width:44px;"></div>
+  </div>
+  <div style="padding:20px;padding-bottom:90px;overflow-y:auto;flex:1;">
+
+    <!-- Location search inputs -->
+    <div class="section-title">Where are you?</div>
+    <div class="card" style="padding:18px 20px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:12px;">
+        <div>
+          <label class="form-label" style="font-size:12px;">City</label>
+          <input id="vet-search-city" type="text" class="form-control" placeholder="e.g. Naples">
+        </div>
+        <div>
+          <label class="form-label" style="font-size:12px;">State</label>
+          <input id="vet-search-state" type="text" class="form-control" placeholder="FL" maxlength="2" oninput="this.value=this.value.toUpperCase()">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="flex:1;height:1px;background:var(--beige-mid);"></div>
+        <span style="font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.5px;">OR</span>
+        <div style="flex:1;height:1px;background:var(--beige-mid);"></div>
+      </div>
+      <div>
+        <label class="form-label" style="font-size:12px;">ZIP Code</label>
+        <input id="vet-search-zip" type="text" class="form-control" placeholder="e.g. 34102" inputmode="numeric" maxlength="5">
+      </div>
+    </div>
+    <button class="btn btn-secondary" style="font-size:14px;margin-bottom:20px;" onclick="useCurrentLocationSearch()">📍 Use My Current Location</button>
+    <div id="vet-location-status"></div>
+
+    <!-- Vet type picker -->
+    <div class="section-title">Type of Care</div>
+    <div class="vet-type-card selected-vet" id="vtype-emergency" onclick="selectVetType('emergency',this)">
+      <div class="vet-type-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#B94040" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="36" height="36"><path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7L12 2z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16.5" r="1" fill="#B94040" stroke="none"/></svg></div>
+      <div style="flex:1;">
+        <div style="font-size:16px;font-weight:700;color:var(--danger);">Emergency Animal Hospital</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px;">Open 24/7 · Critical &amp; urgent care</div>
+      </div>
+      <span class="vtype-check" style="color:var(--primary);font-size:22px;font-weight:800;">✓</span>
+    </div>
+    <div class="vet-type-card" id="vtype-regular" onclick="selectVetType('regular',this)">
+      <div class="vet-type-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="36" height="36"><rect x="3" y="6" width="18" height="14" rx="1"/><path d="M3 10h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2"/><line x1="12" y1="13" x2="12" y2="17"/><line x1="10" y1="15" x2="14" y2="15"/></svg></div>
+      <div style="flex:1;">
+        <div style="font-size:16px;font-weight:700;">Veterinary Clinic</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px;">Regular appointments &amp; wellness visits</div>
+      </div>
+      <span class="vtype-check" style="color:var(--primary);font-size:22px;font-weight:800;opacity:0;">✓</span>
+    </div>
+    <div class="vet-type-card" id="vtype-specialist" onclick="selectVetType('specialist',this)" style="margin-bottom:20px;">
+      <div class="vet-type-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="36" height="36"><circle cx="10" cy="10" r="6"/><line x1="14.5" y1="14.5" x2="20" y2="20"/><line x1="7.5" y1="10" x2="12.5" y2="10"/><line x1="10" y1="7.5" x2="10" y2="12.5"/></svg></div>
+      <div style="flex:1;">
+        <div style="font-size:16px;font-weight:700;">Veterinary Specialist</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px;">Cardiology, oncology, surgery &amp; more</div>
+      </div>
+      <span class="vtype-check" style="color:var(--primary);font-size:22px;font-weight:800;opacity:0;">✓</span>
+    </div>
+
+    <button class="btn btn-primary" onclick="searchVets()">Search Vets →</button>
+
+    <!-- Loading state -->
+    <div id="vet-search-loading" style="display:none;text-align:center;padding:32px 0;">
+      <div class="spinner" style="margin:0 auto 14px;"></div>
+      <p style="color:var(--muted);font-size:14px;">Searching for vets nearby…</p>
+    </div>
+
+    <!-- Results list -->
+    <div id="vet-results-section" style="display:none;margin-top:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="section-title" style="margin-bottom:0;" id="vet-results-count"></div>
+        <span style="font-size:12px;color:var(--muted);">Tap for details</span>
+      </div>
+      <div id="vet-results-list"></div>
+    </div>
+
+    <div class="divider"></div>
+    <p class="section-title">Emergency Hotlines</p>
+    <div class="resource-card" style="margin-bottom:10px;">
+      <div><div class="label">Pet Poison Control</div><div class="phone">855-764-7661</div></div>
+      <a href="tel:8557647661"><button class="call-btn">📞 Call</button></a>
+    </div>
+    <div class="resource-card" style="margin-bottom:16px;">
+      <div><div class="label">ASPCA Poison Control</div><div class="phone">888-426-4435</div></div>
+      <a href="tel:8884264435"><button class="call-btn">📞 Call</button></a>
+    </div>
+    <div class="card card-beige">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;">💡 Save your regular vet's number and nearest emergency hospital in your contacts before you ever need them.</p>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="bottom-nav-item" onclick="showPage('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><polyline points="5,10 5,20 10,20 10,14 14,14 14,20 19,20 19,10"/></svg><span>Home</span></button>
+    <button class="bottom-nav-item" onclick="startTriage(null)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,12 6,12 8,5 11,19 14,10 16,14 18,12 21,12"/></svg><span>Check</span></button>
+    <button class="bottom-nav-item active" onclick="showPage('vets-nearby')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/></svg><span>Vets</span></button>
+    <button class="bottom-nav-item" onclick="showPage('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg><span>History</span></button>
+    <button class="bottom-nav-item" onclick="showPage('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Profile</span></button>
+  </div>
+</div>
+
+<!-- ==================== VET DETAIL ==================== -->
+<div id="page-vet-detail" class="page">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showPage('vets-nearby')">← Back</button>
+    <div class="logo" style="font-size:18px;">Vet Info</div>
+    <div style="width:44px;"></div>
+  </div>
+  <div style="padding-bottom:40px;overflow-y:auto;flex:1;">
+    <div id="vet-detail-content"></div>
+  </div>
+</div>
+
+<!-- ==================== INTAKE VIEW (shared link) ==================== -->
+<div id="page-intake-view" class="page print-target">
+  <div class="print-header">
+    <h1>🐾 VetReady — Pet Intake Form</h1>
+    <p>Shared via VetReady · vetready.app</p>
+  </div>
+  <div class="top-nav no-print" style="background:var(--vet-blue);">
+    <button class="nav-back" onclick="showPage('dashboard')" style="color:rgba(255,255,255,.7);">✕ Close</button>
+    <div class="vet-logo">Vet<span>Ready</span> Intake</div>
+    <button class="nav-btn" onclick="window.print()" style="color:rgba(255,255,255,.7);">🖨️</button>
+  </div>
+  <div style="background:var(--vet-blue);padding:16px 20px 24px;">
+    <div class="vet-badge">📋 INTAKE FORM</div>
+    <p style="color:rgba(255,255,255,.7);font-size:13px;margin-top:10px;">Shared by a pet owner via VetReady</p>
+  </div>
+  <div style="padding:20px;padding-bottom:40px;overflow-y:auto;flex:1;">
+    <div id="intake-view-content"></div>
+    <button class="btn btn-vet mt-16 no-print" onclick="saveIntakeToVetPortal()">💾 Save to Vet Portal</button>
+    <button class="btn no-print mt-8" style="background:var(--beige-mid);color:var(--body);" onclick="printIntake(sharedIntakeData)">🖨️ Print / Save as PDF</button>
+  </div>
+</div>
+
+<!-- ==================== VET LOGIN ==================== -->
+<div id="page-vet-login" class="page auth-page" style="background:#0F2744;">
+  <div class="auth-header">
+    <div style="font-size:40px;margin-bottom:12px;">🏥</div>
+    <h1 style="color:var(--white);">Veterinary Portal</h1>
+    <p style="color:#7EB8F7;">Clinic access — log in below</p>
+  </div>
+  <div class="auth-body" style="background:#F0F6FF;">
+    <div id="vet-login-error" class="error-msg" style="display:none;"></div>
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input id="login-email" type="email" class="form-control" placeholder="your@clinic.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input id="login-password" type="password" class="form-control" placeholder="Your password" autocomplete="current-password">
+    </div>
+    <button class="btn btn-vet" onclick="doVetLogin()">Log In →</button>
+    <div class="divider"></div>
+    <p class="text-muted text-center" style="font-size:14px;margin-bottom:12px;">New clinic? Register for a free account.</p>
+    <button class="btn btn-secondary" onclick="showPage('vet-register')">🏥 Register Your Clinic</button>
+    <button class="btn mt-8" style="background:var(--beige-mid);color:var(--body);font-size:14px;" onclick="goBackFromVet()">← Back to VetReady</button>
+  </div>
+</div>
+
+<!-- ==================== VET DASHBOARD ==================== -->
+<div id="page-vet-dashboard" class="page">
+  <div class="vet-header">
+    <div class="vet-logo">Vet<span>Ready</span></div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="vet-badge">🏥 CLINIC</div>
+      <button class="nav-btn" onclick="doVetLogout()" style="color:rgba(255,255,255,.6);">Sign Out</button>
+    </div>
+  </div>
+  <div style="background:var(--vet-blue);padding:16px 20px 24px;">
+    <p style="color:rgba(255,255,255,.6);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Welcome back,</p>
+    <h2 style="color:var(--white);font-size:22px;font-weight:800;" id="vet-clinic-display"></h2>
+    <p style="color:rgba(255,255,255,.6);font-size:13px;margin-top:4px;" id="vet-doctor-display"></p>
+  </div>
+  <div style="padding:20px;padding-bottom:40px;overflow-y:auto;flex:1;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="section-title" style="margin-bottom:0;">Received Intake Forms</div>
+      <button class="nav-btn" style="color:var(--danger);font-size:13px;" onclick="clearVetIntakes()">Clear All</button>
+    </div>
+    <div id="vet-intakes-list"></div>
+    <div class="card card-beige mt-16" style="text-align:center;padding:16px;">
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;">Pet owners share intake forms with you by clicking <strong>"Share with Vet"</strong> in VetReady and sending you the link.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== VET INTAKE VIEW ==================== -->
+<div id="page-vet-intake-view" class="page print-target">
+  <div class="print-header">
+    <h1>🐾 VetReady — Pet Intake Form</h1>
+    <p>Received via VetReady Vet Portal · vetready.app</p>
+  </div>
+  <div class="vet-header no-print">
+    <button class="nav-back" onclick="showPage('vet-dashboard')" style="color:rgba(255,255,255,.7);">← Back</button>
+    <div class="vet-logo">Intake Form</div>
+    <button class="nav-btn" onclick="printCurrentVetIntake()" style="color:rgba(255,255,255,.7);">🖨️ Print</button>
+  </div>
+  <div style="padding:20px;padding-bottom:40px;overflow-y:auto;flex:1;">
+    <div id="vet-intake-view-content"></div>
+    <button class="btn btn-danger mt-24 no-print" onclick="deleteCurrentVetIntake()">🗑 Remove Intake</button>
+  </div>
+</div>
+
+<!-- ==================== HISTORY DETAIL ==================== -->
+<div id="page-history-detail" class="page">
+  <div class="top-nav">
+    <button class="nav-back" onclick="showPage('history')">← Back</button>
+    <div class="logo" style="font-size:18px;">Past Check</div>
+    <div style="width:44px;"></div>
+  </div>
+  <div style="padding-bottom:40px;overflow-y:auto;flex:1;">
+    <div id="history-detail-content"></div>
+  </div>
+</div>
+
+<!-- ==================== ADD MEDICATION ==================== -->
+<div id="page-add-med" class="page">
+  <div class="top-nav">
+    <button class="nav-back" onclick="cancelAddMed()">← Back</button>
+    <div class="logo" id="add-med-title">Add Medication</div>
+    <div></div>
+  </div>
+  <div style="padding:24px;padding-bottom:40px;overflow-y:auto;flex:1;">
+    <div id="add-med-error" class="error-msg" style="display:none;"></div>
+    <div class="form-group">
+      <label class="form-label">Medication Name *</label>
+      <input id="med-name" type="text" class="form-control" placeholder="e.g. Heartgard, Rimadyl, Apoquel">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Dosage</label>
+        <input id="med-dosage" type="text" class="form-control" placeholder="e.g. 68mcg, 50mg">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Frequency *</label>
+        <select id="med-frequency" class="form-control">
+          <option value="daily">Once daily</option>
+          <option value="twice-daily">Twice daily</option>
+          <option value="every-other-day">Every other day</option>
+          <option value="weekly">Weekly</option>
+          <option value="biweekly">Every 2 weeks</option>
+          <option value="monthly" selected>Monthly</option>
+          <option value="every-3-months">Every 3 months</option>
+          <option value="as-needed">As needed</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Next Due Date</label>
+      <input id="med-next-due" type="date" class="form-control">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+      <textarea id="med-notes" class="form-control" placeholder="e.g. Give with food, store in fridge..." style="min-height:80px;"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveMed()">Save Medication</button>
+    <button id="delete-med-btn" class="btn btn-danger mt-8" style="display:none;" onclick="deleteCurrentMed()">Remove Medication</button>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- ==================== VET REGISTER ==================== -->
+<div id="page-vet-register" class="page auth-page" style="background:#0F2744;">
+  <div class="auth-header">
+    <div style="font-size:36px;margin-bottom:10px;">🏥</div>
+    <h1 style="color:var(--white);font-size:26px;">Register Your Clinic</h1>
+    <p style="color:#7EB8F7;">Create your VetReady clinic account</p>
+  </div>
+  <div class="auth-body" style="background:#F0F6FF;">
+    <div id="vet-reg-error" class="error-msg" style="display:none;"></div>
+    <div class="form-group">
+      <label class="form-label">Clinic / Practice Name *</label>
+      <input id="reg-clinic-name" type="text" class="form-control" placeholder="e.g. Naples Animal Hospital">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Lead Veterinarian / Contact Name *</label>
+      <input id="reg-doctor-name" type="text" class="form-control" placeholder="e.g. Dr. Sarah Johnson">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group">
+        <label class="form-label">Phone *</label>
+        <input id="reg-phone" type="tel" class="form-control" placeholder="(239) 555-0100">
+      </div>
+      <div class="form-group">
+        <label class="form-label">License # <span style="color:var(--muted);font-weight:400;">(opt)</span></label>
+        <input id="reg-license" type="text" class="form-control" placeholder="FL-12345">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Clinic Address</label>
+      <input id="reg-address" type="text" class="form-control" placeholder="123 Main St">
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;">
+      <div class="form-group">
+        <label class="form-label">City</label>
+        <input id="reg-city" type="text" class="form-control" placeholder="Naples">
+      </div>
+      <div class="form-group">
+        <label class="form-label">State</label>
+        <input id="reg-state" type="text" class="form-control" placeholder="FL" maxlength="2">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ZIP</label>
+        <input id="reg-zip" type="text" class="form-control" placeholder="34102">
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="form-group">
+      <label class="form-label">Email (used to log in) *</label>
+      <input id="reg-email" type="email" class="form-control" placeholder="dr.johnson@naplesvet.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password (6+ characters) *</label>
+      <input id="reg-password" type="password" class="form-control" placeholder="Choose a secure password">
+    </div>
+    <button class="btn btn-vet" onclick="doVetRegister()">Register Clinic →</button>
+    <button class="btn btn-secondary mt-8" onclick="showPage('vet-login')" style="font-size:14px;">← Already registered? Log In</button>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div id="share-modal" class="modal-overlay" onclick="closeShareModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-title">📤 Share with Your Vet</div>
+    <div class="modal-sub">Copy the link below and send it to your vet via text or email. They'll see the full intake form.</div>
+    <div class="share-url-box" id="share-url-text"></div>
+    <button class="btn btn-primary mb-8" onclick="copyShareLink()">📋 Copy Link</button>
+    <button class="btn btn-green mb-8" onclick="printIntake()">🖨️ Print Intake Form</button>
+    <button class="btn" style="background:var(--beige-mid);color:var(--body);" onclick="closeShareModal()">Done</button>
+  </div>
+</div>
+
+<!-- PRINT FRAME (invisible — only visible when printing) -->
+<div id="print-frame"></div>
+
+<div id="toast"></div>
+<script>
+/* ================================================================
+   TRIAGE ENGINE
+   ================================================================ */
+const CONDITIONS = {
+  dog: {
+    red: [
+      { name:"Gastric Dilatation-Volvulus (Bloat)", keywords:["bloat","distended","swollen belly","swollen abdomen","retching","unproductive vomit","pacing restless","hard stomach"], description:"Bloat is a life-threatening emergency. The stomach fills with gas and can twist, cutting off blood supply.", action:"Go to an emergency vet immediately. Do not wait — this can be fatal within hours.", do:["Keep your dog calm","Drive directly to the nearest emergency vet","Call ahead so they can prepare"], dont:["Do NOT give food or water","Do NOT make your dog walk far","Do NOT wait to see if it improves"] },
+      { name:"Breathing Difficulty", keywords:["can't breathe","difficulty breathing","labored breathing","gasping","blue gums","purple gums","choking","breathing hard","struggling to breathe"], description:"Any difficulty breathing in a dog is a medical emergency requiring immediate attention.", action:"Go to an emergency vet right now. Breathing emergencies can become fatal very quickly.", do:["Keep your dog calm and still","Call the vet on the way"], dont:["Do NOT muzzle your dog","Do NOT give anything by mouth"] },
+      { name:"Seizure", keywords:["seizure","convulsion","fitting","shaking uncontrollably","jerking","collapsing and shaking","epilepsy attack"], description:"Seizures require emergency care, especially if lasting more than 2-3 minutes or if multiple occur.", action:"If the seizure lasts more than 3 minutes or multiple occur, go to an emergency vet immediately.", do:["Keep your dog away from stairs and sharp objects","Time the seizure","Stay calm and quiet"], dont:["Do NOT put your hand near the mouth","Do NOT restrain the dog"] },
+      { name:"Poisoning / Toxin Ingestion", keywords:["ate chocolate","ate grapes","ate raisins","xylitol","rat poison","mouse poison","antifreeze","swallowed medication","ate pills","mushroom","toxin","poisoned","ingested","swallowed bleach","swallowed cleaning"], description:"Many common foods and substances are toxic to dogs and require immediate treatment.", action:"Call Pet Poison Control (855-764-7661) AND go to the emergency vet immediately. Do not wait for symptoms.", do:["Call Pet Poison Control: 855-764-7661","Bring the packaging of what was ingested","Note how much and when"], dont:["Do NOT induce vomiting unless told to by a vet","Do NOT wait for symptoms to appear"] },
+      { name:"Collapse / Unconscious", keywords:["collapsed","unconscious","unresponsive","fainted","can't stand","won't wake up","passed out"], description:"A dog that has collapsed or is unresponsive requires immediate emergency care.", action:"Go to the emergency vet immediately.", do:["Check for breathing","Keep the dog warm","Get to the vet immediately"], dont:["Do NOT leave the dog alone","Do NOT give water to an unconscious dog"] },
+      { name:"Urinary Blockage", keywords:["can't urinate","straining to urinate","no urine","crying when urinating","blocked bladder","urinary block"], description:"Urinary blockages are life-threatening and can cause kidney failure within 24-48 hours.", action:"This is an emergency. Go to the vet immediately.", do:["Get to the vet immediately","Note when your dog last urinated normally"], dont:["Do NOT wait to see if it resolves","Do NOT give extra water"] },
+      { name:"Heatstroke", keywords:["heatstroke","overheated","heat exhaustion","panting excessively in heat","high temperature","hot day collapse"], description:"Heatstroke can cause permanent organ damage or death if not treated immediately.", action:"Start cooling your dog immediately and get to the vet.", do:["Move to a cool area immediately","Apply cool (not ice cold) water to paws and groin","Use a fan if available","Go to the vet"], dont:["Do NOT use ice water or ice packs","Do NOT leave in a car even briefly"] },
+      { name:"Trauma / Hit by Car", keywords:["hit by car","run over","trauma","severe injury","broken bone","bone sticking out","deep laceration","internal bleeding"], description:"Trauma can cause internal injuries that aren't visible. Emergency care is always needed.", action:"Go to the emergency vet immediately, even if your dog seems okay.", do:["Minimize movement","Keep dog warm","Move carefully using a board or blanket as a stretcher"], dont:["Do NOT let the dog walk if you suspect broken bones"] }
+    ],
+    yellow: [
+      { name:"Repeated Vomiting", keywords:["vomiting multiple times","vomiting several times","vomited 3","vomited 4","vomited 5","keeps vomiting","throwing up repeatedly"], description:"Multiple vomiting episodes can lead to dehydration and may indicate a more serious issue.", action:"Call your vet for guidance. If vomiting more than 5 times or if there is blood, go to the vet today.", do:["Withhold food for 12 hours","Offer small amounts of water","Monitor for blood, lethargy, or bloating"], dont:["Do NOT give Pepto-Bismol or human anti-nausea medications without vet advice"] },
+      { name:"Bloody Diarrhea", keywords:["blood in stool","bloody diarrhea","bloody poop","red in stool","black tarry stool"], description:"Blood in the stool can indicate infection, parvovirus, parasites, or other serious conditions.", action:"Call your vet today. This likely needs same-day evaluation.", do:["Note how much blood and color (red vs dark)","Keep a sample if possible","Monitor for lethargy"], dont:["Do NOT wait more than 24 hours to see a vet"] },
+      { name:"Limping / Lameness", keywords:["limping","lame","not using leg","holding up paw","won't put weight on","favoring leg"], description:"Limping can range from a minor sprain to a fracture. A vet should assess if it lasts more than 24 hours.", action:"If your dog won't put any weight on the leg, see the vet today. Minor limping: rest and monitor 24 hours.", do:["Limit exercise","Check the paw for thorns, cuts, or swelling","Apply a cold compress for 10 min"], dont:["Do NOT give ibuprofen or aspirin — toxic to dogs"] },
+      { name:"Ear Infection", keywords:["ear infection","shaking head","scratching ear","smelly ear","discharge from ear","ear odor","head shaking"], description:"Ear infections are painful and can worsen quickly without treatment.", action:"Schedule a vet visit within 1-2 days.", do:["Clean the outer ear gently with a cotton ball","Schedule a vet appointment"], dont:["Do NOT use cotton swabs inside the ear canal","Do NOT use human ear drops"] },
+      { name:"Eye Problem", keywords:["eye discharge","eye infection","red eye","cloudy eye","swollen eye","pawing at eye","squinting"], description:"Eye conditions can progress quickly and most need veterinary attention within 24 hours.", action:"See your vet within 24 hours. Eye conditions can worsen rapidly.", do:["Rinse with sterile saline if available","Prevent rubbing with an e-collar if possible"], dont:["Do NOT use human eye drops","Do NOT ignore — eyes deteriorate quickly"] },
+      { name:"Not Eating", keywords:["not eating","won't eat","skipping meals","refusing food","no appetite"], description:"Loss of appetite for more than 48 hours warrants a vet check.", action:"If not eating for more than 2 days, or combined with other symptoms, call your vet.", do:["Try hand-feeding a bland diet (chicken and rice)","Monitor for other symptoms","Ensure fresh water is available"], dont:["Do NOT force-feed"] }
+    ],
+    green: [
+      { name:"Single Vomiting Episode", keywords:["vomited once","threw up once","single vomit","vomited one time"], description:"A single vomiting episode in an otherwise normal dog is usually not concerning.", action:"Monitor at home. Withhold food for a few hours, then offer a small bland meal.", do:["Withhold food for 2-4 hours","Offer small amounts of water","Try bland food (plain rice and boiled chicken)","Monitor for more vomiting"], dont:["Do NOT give human medications","Call vet if vomiting continues or worsens"] },
+      { name:"Mild Loose Stool", keywords:["soft stool","loose stool","mild diarrhea","runny poop once","softer than normal"], description:"Mild, occasional loose stools are often caused by diet changes or stress.", action:"Feed a bland diet for 24-48 hours. Contact your vet if it continues beyond 2 days.", do:["Feed plain boiled chicken and rice","Ensure fresh water","Monitor for blood or worsening"], dont:["Do NOT give human anti-diarrheal medications"] },
+      { name:"Minor Cut or Scrape", keywords:["small cut","minor cut","scrape","small wound","scratch"], description:"Small cuts and scrapes can usually be treated at home.", action:"Clean the wound and monitor for infection. See a vet if the wound is deep, won't stop bleeding, or shows signs of infection.", do:["Clean gently with mild soap and warm water","Apply gentle pressure if bleeding","Monitor for redness, swelling, or discharge"], dont:["Do NOT use hydrogen peroxide on wounds","Do NOT use human antiseptics with xylitol"] },
+      { name:"Occasional Cough", keywords:["coughing occasionally","mild cough","occasional cough","coughs sometimes"], description:"Occasional coughing without other symptoms is usually not urgent.", action:"Monitor for 48-72 hours. If persistent or worsening, see your vet.", do:["Note frequency and whether anything is produced","Keep away from smoke and irritants","Monitor for fever or lethargy"], dont:["Do NOT give human cough medicine"] }
+    ]
+  },
+  cat: {
+    red: [
+      { name:"Urinary Blockage (Male Cat)", keywords:["straining to urinate","can't urinate","no urine","crying in litter box","blocked","urinary block","keeps going to litter box","litter box straining"], description:"Male cats are prone to urinary blockages. This is a life-threatening emergency — cats can die within 24-48 hours.", action:"GO TO THE EMERGENCY VET IMMEDIATELY. Do not wait, even for one hour.", do:["Get to the emergency vet now","Call ahead so they can prepare"], dont:["Do NOT wait — this can be fatal within 24 hours"] },
+      { name:"Breathing Difficulty", keywords:["can't breathe","breathing hard","open mouth breathing","gasping","labored breathing","blue gums"], description:"Cats rarely breathe through their mouths. Open-mouth breathing is always an emergency.", action:"This is an emergency. Get to a vet immediately.", do:["Keep the cat calm","Minimize handling","Go directly to the emergency vet"], dont:["Do NOT confine in a carrier if it worsens breathing"] },
+      { name:"Lily Poisoning", keywords:["ate lily","lily poisoning","lily plant","easter lily","tiger lily","daylily"], description:"ALL parts of the lily plant are highly toxic to cats and cause rapid kidney failure.", action:"Call Pet Poison Control (855-764-7661) and go to the emergency vet immediately.", do:["Call Pet Poison Control: 855-764-7661","Bring the plant or a photo","Get to the vet immediately"], dont:["Do NOT wait for symptoms — kidney damage begins quickly"] },
+      { name:"Collapse / Seizure", keywords:["collapsed","seizure","convulsion","unresponsive","unconscious","won't wake up"], description:"Collapse or seizure in a cat requires immediate emergency care.", action:"Emergency vet immediately.", do:["Keep cat safe from injury","Keep surroundings quiet and dim","Go to the vet"], dont:["Do NOT restrain during a seizure"] }
+    ],
+    yellow: [
+      { name:"Not Eating (24+ hours)", keywords:["not eating","won't eat","refusing food","no appetite","hasn't eaten"], description:"Cats that don't eat for more than 24-48 hours are at risk for hepatic lipidosis (fatty liver disease).", action:"Call your vet if your cat hasn't eaten in 24 hours. This becomes urgent at 48 hours.", do:["Try warming food slightly","Offer different foods","Monitor for other symptoms"], dont:["Do NOT wait more than 48 hours without vet guidance"] },
+      { name:"Hiding and Lethargic", keywords:["hiding","lethargic","not herself","not himself","withdrawn","not playful","very quiet"], description:"Cats hide when they don't feel well. Combined with lethargy, this warrants a vet check.", action:"Schedule a vet visit today or tomorrow. Check for other symptoms.", do:["Note any other symptoms","Ensure access to water","Keep environment calm"], dont:["Do NOT force interaction"] },
+      { name:"Vomiting Repeatedly", keywords:["vomiting multiple","keeps vomiting","vomited several times","throwing up repeatedly"], description:"Multiple vomiting episodes warrant a vet call.", action:"Call your vet. If more than 3-4 times or if there is blood, go in today.", do:["Withhold food for 2-3 hours","Offer small amounts of water"], dont:["Do NOT give human medications"] },
+      { name:"Sneezing with Nasal Discharge", keywords:["sneezing constantly","nasal discharge","runny nose","green discharge from nose","upper respiratory"], description:"Persistent sneezing with discharge can indicate an upper respiratory infection.", action:"See your vet within 24-48 hours.", do:["Keep eyes and nose clean with a warm damp cloth","Ensure hydration","Separate from other cats"], dont:["Do NOT use human cold medications"] }
+    ],
+    green: [
+      { name:"Hairball", keywords:["hairball","retching hairball","coughing up hairball","hack up","grass eating"], description:"Hairballs are normal in cats, especially long-haired breeds.", action:"Monitor at home. Contact vet if they occur more than once a week.", do:["Brush your cat regularly","Consider a hairball control food or treat","Monitor frequency"], dont:["Do NOT give petroleum-based hairball remedies without vet advice if cat has other issues"] },
+      { name:"Single Vomit", keywords:["vomited once","threw up once","vomited one time","single episode of vomiting"], description:"Cats occasionally vomit without it being a cause for concern.", action:"Withhold food for 1-2 hours then offer a small meal. Monitor.", do:["Monitor for more vomiting","Offer small meals","Ensure water is available"], dont:["Do NOT ignore if it continues more than 2-3 times"] },
+      { name:"Occasional Sneezing", keywords:["sneezing once","sneezed","sneezing occasionally","few sneezes"], description:"Occasional sneezing without discharge is usually caused by dust or a minor irritant.", action:"Monitor. No action needed unless sneezing becomes frequent or discharge appears.", do:["Check for obvious irritants like dust or strong scents","Monitor frequency"], dont:[] }
+    ]
+  },
+  bird: {
+    red: [
+      { name:"Respiratory Distress", keywords:["tail bobbing","breathing heavily","open beak breathing","wheezing","clicking sound breathing","labored breathing"], description:"Birds have highly efficient respiratory systems — any visible breathing effort is an emergency.", action:"Go to an avian vet immediately. Birds can decline very rapidly.", do:["Keep bird warm (85-90°F)","Minimize stress","Get to an avian vet ASAP"], dont:["Do NOT use aerosols or sprays near the bird"] },
+      { name:"Avian Toxin Exposure", keywords:["teflon","nonstick","oven cleaner","fumes","smoke","candle","air freshener collapse","toxic fumes","scented candle"], description:"Bird respiratory systems are extremely sensitive to fumes, especially PTFE from nonstick cookware.", action:"Move bird to fresh air immediately and get to an avian vet.", do:["Move to fresh air immediately","Open windows","Get to a vet NOW"], dont:["Do NOT use nonstick pans when birds are nearby"] },
+      { name:"Collapse / Unresponsive Bird", keywords:["collapsed","found on cage floor","unresponsive","on the bottom of cage","fell off perch"], description:"Birds hide illness. If a bird is found on the cage floor, it is very sick.", action:"Emergency avian vet immediately.", do:["Keep warm at 85-90°F","Minimize handling","Get to an avian vet"], dont:["Do NOT delay — birds deteriorate extremely quickly"] }
+    ],
+    yellow: [
+      { name:"Fluffed Feathers / Lethargy", keywords:["puffed up","fluffed feathers","lethargic bird","sleeping a lot","not active","sitting quietly"], description:"Fluffed feathers and lethargy are signs a bird is unwell. Birds hide illness until they can't.", action:"Call an avian vet today. Keep the bird warm while you arrange a visit.", do:["Keep bird warm (85-90°F)","Monitor food and water intake","Note droppings"], dont:["Do NOT wait more than 24 hours"] },
+      { name:"Change in Droppings", keywords:["abnormal droppings","watery droppings","green droppings","yellow droppings","no droppings","bloody droppings"], description:"Droppings are an important health indicator in birds. Abnormal droppings warrant a vet call.", action:"Monitor closely and call an avian vet if droppings remain abnormal for more than 1-2 days.", do:["Save a photo of the droppings","Note food and water intake","Keep warm"], dont:[] }
+    ],
+    green: [
+      { name:"Molting / Feather Loss", keywords:["molting","feathers falling out","losing feathers","pin feathers","new feathers"], description:"Molting is a normal process birds go through 1-2 times per year.", action:"Normal process. Provide proper nutrition. If feathers are not growing back, see an avian vet.", do:["Ensure a balanced diet rich in nutrients","Provide bathing opportunities","Minimize stress during molt"], dont:["Do NOT handle pin feathers unnecessarily — they are sensitive"] }
+    ]
+  },
+  rabbit: {
+    red: [
+      { name:"GI Stasis", keywords:["not eating","no droppings","hasn't eaten","bloated","gut stasis","gassy","hunched","teeth grinding"], description:"GI stasis (when the digestive system slows or stops) is a life-threatening emergency in rabbits.", action:"This is a rabbit emergency. Go to a rabbit-savvy vet immediately.", do:["Get to a vet immediately","Encourage movement if possible","Keep warm"], dont:["Do NOT wait — GI stasis kills rabbits within 24-48 hours","Do NOT withhold hay"] },
+      { name:"Breathing Difficulty", keywords:["breathing hard","labored breathing","clicking breath","tilted head","head tilt sudden"], description:"Rabbits breathe through their noses. Any difficulty breathing is an emergency.", action:"Emergency vet immediately.", do:["Keep calm and cool","Get to a vet"], dont:["Do NOT stress the rabbit further"] }
+    ],
+    yellow: [
+      { name:"Soft Cecotropes", keywords:["soft droppings","mushy cecotropes","smelly droppings","too many cecotropes"], description:"Soft cecotropes often indicate a diet too high in sugar or fat.", action:"Adjust diet and call your vet if it persists more than 2-3 days.", do:["Reduce pellets and sugary treats","Increase hay to 90% of diet","Monitor droppings"], dont:["Do NOT remove cecotropes from the rabbit's reach"] }
+    ],
+    green: [
+      { name:"Mild Sneezing", keywords:["sneezing once","sneezing occasionally","few sneezes"], description:"Occasional sneezing can be caused by dust or mild irritants.", action:"Monitor. If persistent or combined with nasal discharge, see a rabbit-savvy vet.", do:["Check for dust in hay or bedding","Ensure good ventilation"], dont:[] }
+    ]
+  },
+  reptile: {
+    red: [
+      { name:"Respiratory Infection (Severe)", keywords:["wheezing","clicking breathing","mucus from mouth","open mouth breathing","gaping"], description:"Severe respiratory infections in reptiles require urgent veterinary care.", action:"See a reptile vet as soon as possible — within 24 hours.", do:["Raise enclosure temperature to optimal range","Keep humidity appropriate for species","Get to a reptile vet"], dont:["Do NOT use over-the-counter respiratory medications"] },
+      { name:"Metabolic Bone Disease (Crisis)", keywords:["can't move","paralyzed","limp","soft jaw","broken bone reptile","unable to walk"], description:"Severe MBD can cause fractures and paralysis.", action:"See a reptile vet urgently.", do:["Handle very carefully to avoid fractures","Ensure UV lighting is working","Get to a vet"], dont:["Do NOT handle more than necessary"] }
+    ],
+    yellow: [
+      { name:"Not Eating (Reptile)", keywords:["not eating","refusing food","won't eat","no appetite"], description:"Reptiles can go without food for extended periods, but prolonged refusal warrants investigation.", action:"If refusing food for more than 4-6 weeks (snake) or 2 weeks (lizard), see a reptile vet.", do:["Check temperatures and humidity","Ensure prey item is appropriate size","Rule out shedding or breeding season"], dont:["Do NOT force-feed without vet guidance"] },
+      { name:"Stuck Shed", keywords:["stuck shed","retained shed","incomplete shed","skin stuck","retained eye caps"], description:"Retained shed can cut off circulation to toes or damage eyes.", action:"Soak in warm water and try to gently remove. If eyes are involved, see a vet.", do:["Soak in warm water for 20-30 minutes","Use a wet cloth to gently roll off shed","See a vet for retained eye caps"], dont:["Do NOT forcibly pull shed off","Do NOT use dry cotton swabs on eye caps"] }
+    ],
+    green: [
+      { name:"Normal Shedding", keywords:["shedding","shedding skin","dull skin","eyes turning blue","pre-shed"], description:"Shedding is a normal process for reptiles.", action:"Increase humidity slightly and provide rough surfaces to assist shedding.", do:["Increase humidity","Add rough rock or branch to assist","Provide a moist hide","Monitor that shed is complete"], dont:["Do NOT handle during shed if the reptile seems stressed"] }
+    ]
+  },
+  fish: {
+    red: [
+      { name:"Oxygen Deprivation", keywords:["gasping at surface","all fish gasping","floating upside down","all fish dying"], description:"Fish gasping at the surface indicates a critical lack of oxygen.", action:"Emergency action needed immediately.", do:["Add aeration (air pump, splash water)","Do a 50% water change with dechlorinated water","Remove dead fish","Check for chemical contamination"], dont:["Do NOT add more fish food — it worsens oxygen levels"] }
+    ],
+    yellow: [
+      { name:"Ich (White Spots)", keywords:["white spots","ich","ick","white dots","salt grains on fish","scratching on rocks"], description:"Ich is a parasitic infection that spreads quickly in tanks.", action:"Begin treatment promptly. Most pet stores carry ich medication.", do:["Raise water temperature gradually to 86°F if species tolerates","Use ich medication from pet store","Quarantine new fish"], dont:["Do NOT mix ich medications","Do NOT ignore — it can kill an entire tank"] },
+      { name:"Fin Rot", keywords:["fin rot","ragged fins","torn fins","deteriorating fins","white edges on fins"], description:"Fin rot is a bacterial infection, often caused by poor water quality.", action:"Improve water quality and consider medication.", do:["Do a water change","Test water parameters","Use antibacterial fish medication"], dont:["Do NOT overcrowd the tank"] }
+    ],
+    green: [
+      { name:"Minor Injury", keywords:["small wound","slight injury","minor cut fish","small scrape fish"], description:"Minor injuries in fish often heal with clean, good-quality water.", action:"Ensure excellent water quality. Monitor for signs of infection.", do:["Ensure optimal water parameters","Remove any sharp decorations","Monitor for color change or swelling"], dont:["Do NOT add salt without researching your species first"] }
+    ]
+  },
+  "small mammal": {
+    red: [
+      { name:"Respiratory Distress", keywords:["labored breathing","clicking breath","gasping","blue lips"], description:"Breathing difficulty in small mammals is always an emergency.", action:"Emergency vet immediately.", do:["Keep warm","Minimize stress","Get to a vet"], dont:["Do NOT delay"] }
+    ],
+    yellow: [
+      { name:"Wet Tail (Hamster)", keywords:["wet tail","wet bottom","diarrhea hamster","smelly bottom","inactive hamster"], description:"Wet tail is a serious bacterial infection in hamsters that can be fatal within 24-48 hours.", action:"See a vet today. Wet tail progresses very quickly.", do:["See a vet today","Keep warm","Separate from other hamsters"], dont:["Do NOT wait — wet tail can kill within 48 hours"] },
+      { name:"Not Eating (Small Mammal)", keywords:["not eating","won't eat","no appetite","refusing food"], description:"Small mammals need to eat constantly due to their high metabolism.", action:"If not eating for more than 12-24 hours, see a vet.", do:["Offer favorite foods","Ensure water is accessible","Check teeth for overgrowth"], dont:["Do NOT wait more than 24 hours"] }
+    ],
+    green: [
+      { name:"Normal Grooming Behavior", keywords:["scratching","grooming a lot","grooming normally","licking fur"], description:"Grooming is normal behavior for most small mammals.", action:"Normal behavior. Monitor only if it seems excessive or causes hair loss.", do:["Observe for any hair loss or skin irritation","Ensure bedding is dust-free"], dont:[] }
+    ]
+  },
+  horse: {
+    red: [
+      { name:"Colic", keywords:["colic","rolling","pawing at ground","looking at flank","not passing manure","kicking belly","sweating for no reason","lying down repeatedly"], description:"Colic is the leading cause of death in horses. It can range from mild to life-threatening.", action:"Call your equine vet immediately. If the horse is rolling violently, go to an emergency equine facility.", do:["Call your vet immediately","Walk the horse gently to prevent rolling if safe","Remove food","Note when last manure was passed"], dont:["Do NOT give medications without vet guidance","Do NOT leave unattended if rolling violently"] },
+      { name:"Laminitis / Founder", keywords:["laminitis","founder","digital pulse","leaning back","not wanting to walk","heat in hoof"], description:"Laminitis is a painful and potentially life-altering hoof condition requiring immediate attention.", action:"Call your vet. Immediate action reduces long-term damage.", do:["Call vet immediately","Stand horse on soft ground or sand","Remove from grass immediately"], dont:["Do NOT force the horse to walk","Do NOT give painkillers without vet guidance"] },
+      { name:"Wound with Joint Involvement", keywords:["wound near joint","joint injury","tendon cut","deep laceration horse","wound over joint"], description:"Any wound near a joint in a horse can be life-threatening due to the risk of joint infection.", action:"Call your equine vet immediately. This is a surgical emergency.", do:["Bandage loosely","Call vet immediately","Keep horse calm and still"], dont:["Do NOT flush with hydrogen peroxide","Do NOT delay — joint infections can be fatal"] }
+    ],
+    yellow: [
+      { name:"Mild Lameness", keywords:["limping","slight lameness","mild lameness","favoring leg"], description:"Mild lameness can have many causes. A vet should examine if it persists.", action:"Rest the horse and call your vet if lameness persists more than 24-48 hours.", do:["Rest from exercise","Check hooves for stones or thrush","Monitor for swelling","Apply cold hosing if swollen"], dont:["Do NOT push through lameness with exercise"] }
+    ],
+    green: [
+      { name:"Minor Skin Irritation", keywords:["rain rot","scratches","mud fever","mild skin irritation","small bump on skin"], description:"Minor skin conditions in horses are common and usually manageable.", action:"Clean the area and apply appropriate topical treatment. Monitor for improvement.", do:["Clean with an antimicrobial wash","Keep area dry","Monitor for spreading"], dont:["Do NOT ignore spreading lesions"] }
+    ]
+  }
+};
+
+const FOLLOW_UP_QUESTIONS = [
+  { id:"duration", text:"How long has your pet been showing these symptoms?", options:["Just started (under 1 hour)","A few hours","1-2 days","3 or more days"] },
+  { id:"eating", text:"Is your pet eating and drinking normally?", options:["Yes, normally","Eating less than usual","Not eating at all","Not sure"] },
+  { id:"energy", text:"How is your pet's energy level?", options:["Normal","A little low","Very lethargic","Collapsed / can't stand"] },
+  { id:"other_symptoms", text:"Any of these also present?", options:["Vomiting","Diarrhea","Limping","None of the above"] }
+];
+
+function vrAnalyze(symptoms, petType, followUp) {
+  const text = symptoms.toLowerCase();
+  let pt = (petType||'dog').toLowerCase().trim();
+  if (["hamster","guinea pig","gerbil","rat","mouse","ferret"].includes(pt)) pt = "small mammal";
+  if (!CONDITIONS[pt]) pt = "dog";
+  const conds = CONDITIONS[pt];
+  let boost = 0;
+  if (followUp) {
+    if (followUp.energy === "Collapsed / can't stand") boost = 2;
+    else if (followUp.energy === "Very lethargic") boost += 1;
+    if (followUp.eating === "Not eating at all") boost += 1;
+    if (followUp.duration === "3 or more days") boost += 1;
+  }
+  for (const c of (conds.red||[])) { if (c.keywords.some(kw => text.includes(kw))) return _build("red",c); }
+  for (const c of (conds.yellow||[])) { if (c.keywords.some(kw => text.includes(kw))) return _build(boost>=2?"red":"yellow",c); }
+  for (const c of (conds.green||[])) { if (c.keywords.some(kw => text.includes(kw))) return _build(boost>=2?"yellow":"green",c); }
+  if (boost>=3) return _default("red");
+  if (boost>=1) return _default("yellow");
+  return _default("green");
+}
+function _build(level,c) {
+  return { level, condition:c.name, description:c.description, action:c.action, do:c.do, dont:c.dont,
+    resources: level==="red"?[{label:"Pet Poison Control",phone:"855-764-7661"},{label:"ASPCA Poison Control",phone:"888-426-4435"}]:[] };
+}
+function _default(level) {
+  const d = {
+    red:{condition:"Potentially Serious Symptoms",description:"Based on your pet's symptoms and condition, we recommend immediate veterinary evaluation.",action:"Please go to the nearest emergency vet or call your veterinarian right away.",do:["Contact your vet immediately","Monitor vitals","Keep your pet calm and warm"],dont:["Do NOT give human medications","Do NOT delay seeking care"]},
+    yellow:{condition:"Symptoms Require Veterinary Attention",description:"Your pet's symptoms suggest a vet visit is needed soon.",action:"Call your vet today and describe the symptoms. They may want to see your pet within 24 hours.",do:["Call your vet today","Monitor food, water, and bathroom habits","Note any changes"],dont:["Do NOT give human medications without vet guidance"]},
+    green:{condition:"Monitor at Home",description:"Your pet's symptoms appear mild based on the information provided.",action:"Monitor closely at home for 24-48 hours. Contact your vet if symptoms worsen.",do:["Monitor closely for 24-48 hours","Ensure access to fresh water","Keep comfortable and rested"],dont:["Do NOT ignore worsening symptoms","Do NOT give human medications"]}
+  };
+  return { level, ...d[level], resources:[] };
+}
+
+/* ================================================================
+   STATE & STORAGE
+   ================================================================ */
+const SPECIES_EMOJI = { dog:'🐕', cat:'🐈', bird:'🐦', rabbit:'🐇', reptile:'🦎', fish:'🐟', 'small mammal':'🐹', horse:'🐴' };
+const QUICK_TAGS = {
+  dog:['Not eating','Vomiting','Diarrhea','Limping','Coughing','Lethargy','Swollen belly','Bleeding','Ate chocolate','Ate grapes'],
+  cat:['Not eating','Vomiting','Hiding','Lethargy','Sneezing','Limping','Not urinating','Eye discharge','Ate lily','Straining in litter box'],
+  bird:['Fluffed feathers','Not eating','Trouble breathing','On cage floor','Abnormal droppings','Feather plucking'],
+  rabbit:['Not eating','No droppings','Head tilt','Bloated','Teeth grinding','Labored breathing'],
+  reptile:['Not eating','Open mouth breathing','Stuck shed','Lethargic','Soft jaw','Wheezing'],
+  fish:['Gasping at surface','White spots','Fin rot','Not eating','Swimming sideways','Floating'],
+  'small mammal':['Not eating','Lethargy','Wet tail','Hair loss','Discharge','Limping'],
+  horse:['Colic','Rolling','Lameness','Not eating','Heat in hoof','Deep wound']
+};
+
+function loadData() { try { return JSON.parse(localStorage.getItem('vr_data')||'{}'); } catch(e) { return {}; } }
+function saveData(d) { localStorage.setItem('vr_data', JSON.stringify(d)); }
+function getData(key,def) { return loadData()[key]??def; }
+function setData(key,val) { const d=loadData(); d[key]=val; saveData(d); }
+
+let pets = [];
+let history = [];
+let currentTriage = { petId:null, petName:'', species:'dog', symptoms:'', followUpAnswers:{} };
+let currentResult = null;
+let currentDetailPetId = null;
+let currentEditPetId = null;
+let currentVetIntakeId = null;
+let sharedIntakeData = null;
+let prevPage = 'dashboard';
+
+/* ================================================================
+   ROUTING
+   ================================================================ */
+// Pages that are "destinations" (back-sliding) vs "forward" pages
+const BACK_PAGES = new Set(['dashboard','pet-detail','history','profile','vet-dashboard','vet-login','triage-1','triage-2']);
+
+function showPage(name) {
+  const prevEl = document.querySelector('.page.active');
+  prevPage = prevEl?.id?.replace('page-','') || 'dashboard';
+
+  // Reverse animation when navigating back/up
+  const isBack = BACK_PAGES.has(name) && !BACK_PAGES.has(prevPage);
+
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+    p.classList.remove('slide-back');
+  });
+  const pg = document.getElementById('page-'+name);
+  if (!pg) return;
+  if (isBack) pg.classList.add('slide-back');
+  pg.classList.add('active');
+  pg.scrollTop = 0;
+
+  // Sync bottom-nav active state across all navs in the DOM
+  const navIndexMap = {
+    'dashboard':0, 'add-pet':0, 'pet-detail':0,
+    'triage-1':1, 'triage-2':1, 'triage-3':1, 'result':1,
+    'vets-nearby':2, 'vet-detail':2,
+    'history':3, 'history-detail':3,
+    'profile':4
+  };
+  const navIdx = navIndexMap.hasOwnProperty(name) ? navIndexMap[name] : null;
+  document.querySelectorAll('.bottom-nav').forEach(nav => {
+    nav.querySelectorAll('.bottom-nav-item').forEach((item, i) => {
+      item.classList.toggle('active', navIdx !== null && i === navIdx);
+    });
+  });
+
+  if (name==='dashboard') renderDashboard();
+  if (name==='history') renderHistoryPage();
+  if (name==='profile') renderProfile();
+  if (name==='triage-1') renderTriagePetSelect();
+  if (name==='vet-dashboard') renderVetDashboard();
+}
+function goBack() { showPage(prevPage||'dashboard'); }
+
+/* ================================================================
+   INIT — URL ROUTING
+   ================================================================ */
+function init() {
+  const params = new URLSearchParams(window.location.search);
+  const intake = params.get('intake');
+  const mode = params.get('mode');
+
+  if (intake) {
+    try {
+      sharedIntakeData = JSON.parse(atob(intake));
+      renderIntakeView(sharedIntakeData);
+      showPage('intake-view');
+      return;
+    } catch(e) { /* bad param, fall through */ }
+  }
+
+  if (mode === 'vet') {
+    initVetMode();
+    return;
+  }
+
+  pets = getData('pets', []);
+  history = getData('history', []);
+  const name = getData('name','');
+  if (name) showPage('dashboard');
+  else showPage('setup');
+}
+
+/* ================================================================
+   SETUP
+   ================================================================ */
+function doSetup() {
+  const name = document.getElementById('setup-name').value.trim();
+  if (!name) { showToast('Please enter your name','error'); return; }
+  setData('name', name);
+  pets = getData('pets',[]);
+  history = getData('history',[]);
+  showPage('dashboard');
+}
+
+/* ================================================================
+   DASHBOARD
+   ================================================================ */
+function renderDashboard() {
+  const name = getData('name','there');
+  const first = name.split(' ')[0];
+  document.getElementById('dash-greeting').textContent = first + ' 👋';
+  document.getElementById('nav-user-name').textContent = first;
+  renderPetsList();
+  renderHistoryPreview();
+  renderDashboardReminders();
+}
+
+function renderPetsList() {
+  const el = document.getElementById('pets-list');
+  if (!pets.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:30px 0;"><div class="empty-icon">🐾</div><h3>No pets yet</h3><p>Add your first pet to get started.</p></div>';
+    return;
+  }
+  el.innerHTML = pets.map(p => {
+    const avatarInner = p.photo
+      ? `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : (SPECIES_EMOJI[p.species]||'🐾');
+    return `<div class="pet-card" onclick="viewPetDetail(${p.id})">
+      <div class="pet-avatar">${avatarInner}</div>
+      <div class="pet-info">
+        <div class="pet-name">${esc(p.name)}</div>
+        <div class="pet-meta">${cap(p.species)}${p.breed?' · '+esc(p.breed):''}${p.age_years!=null?' · '+p.age_years+' yr':''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="icon-btn" onclick="event.stopPropagation();startTriage(${p.id})" title="Start check">🩺</button>
+        <span style="color:var(--muted);">→</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistoryPreview() {
+  const el = document.getElementById('history-preview');
+  if (!history.length) {
+    el.innerHTML = '<p class="text-muted" style="font-size:14px;margin-top:8px;">No checks yet — start one above!</p>';
+    return;
+  }
+  el.innerHTML = history.slice(0,3).map(histHTML).join('');
+}
+
+function histHTML(h) {
+  const lvl = h.level||'green';
+  const em = lvl==='red'?'🔴':lvl==='yellow'?'🟡':'🟢';
+  const dt = h.date ? new Date(h.date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+  return `<div class="history-item" onclick="viewHistoryItem(${h.id})">
+    <div class="level-badge ${lvl}">${em}</div>
+    <div class="history-info">
+      <div class="history-condition">${esc(h.condition)}</div>
+      <div class="history-meta">${esc(h.petName||'My Pet')} · ${dt}</div>
+    </div>
+    <span style="color:var(--muted);font-size:20px;padding-left:4px;">›</span>
+  </div>`;
+}
+
+/* ================================================================
+   PHOTO UPLOAD
+   ================================================================ */
+function uploadPetPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const maxSize = 200;
+      let w = img.width, h = img.height;
+      if (w > h) { if (w>maxSize) { h=Math.round(h*maxSize/w); w=maxSize; } }
+      else { if (h>maxSize) { w=Math.round(w*maxSize/h); h=maxSize; } }
+      const canvas = document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const dataURL = canvas.toDataURL('image/jpeg', 0.65);
+      document.getElementById('pet-photo-data').value = dataURL;
+      const prev = document.getElementById('pet-photo-preview');
+      prev.src = dataURL; prev.style.display = 'block';
+      document.getElementById('photo-placeholder').style.display = 'none';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ================================================================
+   PETS — ADD / EDIT / DELETE
+   ================================================================ */
+function selectSpecies(species, el) {
+  document.getElementById('pet-species').value = species;
+  document.querySelectorAll('.species-item').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function cancelAddPet() {
+  if (currentEditPetId !== null) {
+    const savedDetailId = currentDetailPetId;
+    currentEditPetId = null;
+    if (savedDetailId != null) { viewPetDetail(savedDetailId); return; }
+  }
+  currentEditPetId = null;
+  showPage('dashboard');
+}
+
+function editCurrentPet() {
+  if (currentDetailPetId == null) return;
+  const pet = pets.find(p => p.id === currentDetailPetId);
+  if (!pet) return;
+  currentEditPetId = pet.id;
+  // populate form
+  document.getElementById('add-pet-title').textContent = 'Edit Pet';
+  document.getElementById('pet-name').value = pet.name||'';
+  document.getElementById('pet-species').value = pet.species||'';
+  document.getElementById('pet-breed').value = pet.breed||'';
+  document.getElementById('pet-age').value = pet.age_years!=null?pet.age_years:'';
+  document.getElementById('pet-weight').value = pet.weight_lbs!=null?pet.weight_lbs:'';
+  document.getElementById('pet-color').value = pet.color||'';
+  document.getElementById('pet-sex').value = pet.sex||'';
+  document.getElementById('pet-microchip').value = pet.microchip||'';
+  document.getElementById('pet-notes').value = pet.notes||'';
+  document.querySelectorAll('.species-item').forEach(e => {
+    e.classList.toggle('selected', e.onclick.toString().includes("'"+pet.species+"'"));
+  });
+  // photo
+  if (pet.photo) {
+    document.getElementById('pet-photo-preview').src = pet.photo;
+    document.getElementById('pet-photo-preview').style.display = 'block';
+    document.getElementById('photo-placeholder').style.display = 'none';
+    document.getElementById('pet-photo-data').value = pet.photo;
+  } else {
+    document.getElementById('pet-photo-preview').style.display = 'none';
+    document.getElementById('photo-placeholder').style.display = 'block';
+    document.getElementById('pet-photo-data').value = '';
+  }
+  const vax = pet.vaccines || {};
+  document.getElementById('vax-rabies').value = vax.rabies||'';
+  document.getElementById('vax-core').value = vax.core||'';
+  document.getElementById('vax-bordetella').value = vax.bordetella||'';
+  document.getElementById('vax-lepto').value = vax.lepto||'';
+  document.getElementById('vax-other').value = vax.other||'';
+  document.getElementById('delete-pet-btn').style.display = 'block';
+  showPage('add-pet');
+}
+
+function savePet() {
+  const name = document.getElementById('pet-name').value.trim();
+  const species = document.getElementById('pet-species').value;
+  const errEl = document.getElementById('add-pet-error');
+  errEl.style.display='none';
+  if (!name) { errEl.textContent='Please enter a pet name.'; errEl.style.display='block'; return; }
+  if (!species) { errEl.textContent='Please select a species.'; errEl.style.display='block'; return; }
+
+  const vaxObj = {
+    rabies: document.getElementById('vax-rabies').value||null,
+    core: document.getElementById('vax-core').value||null,
+    bordetella: document.getElementById('vax-bordetella').value||null,
+    lepto: document.getElementById('vax-lepto').value||null,
+    other: document.getElementById('vax-other').value.trim()||null,
+  };
+  const hasVax = Object.values(vaxObj).some(Boolean);
+  const petData = {
+    name, species,
+    breed: document.getElementById('pet-breed').value.trim()||null,
+    age_years: document.getElementById('pet-age').value ? parseFloat(document.getElementById('pet-age').value) : null,
+    weight_lbs: document.getElementById('pet-weight').value ? parseFloat(document.getElementById('pet-weight').value) : null,
+    color: document.getElementById('pet-color').value.trim()||null,
+    sex: document.getElementById('pet-sex').value||null,
+    microchip: document.getElementById('pet-microchip').value.trim()||null,
+    notes: document.getElementById('pet-notes').value.trim()||null,
+    photo: document.getElementById('pet-photo-data').value||null,
+    vaccines: hasVax ? vaxObj : null,
+  };
+
+  if (currentEditPetId !== null) {
+    const idx = pets.findIndex(p => p.id === currentEditPetId);
+    if (idx !== -1) { pets[idx] = { ...pets[idx], ...petData }; }
+    currentDetailPetId = currentEditPetId;
+    currentEditPetId = null;
+    setData('pets', pets);
+    showToast('Pet updated! 🐾','success');
+    // reset add-pet form
+    resetAddPetForm();
+    viewPetDetail(currentDetailPetId);
+  } else {
+    const pet = { id: Date.now(), ...petData };
+    pets.push(pet);
+    setData('pets', pets);
+    showToast('Pet saved! 🐾','success');
+    resetAddPetForm();
+    showPage('dashboard');
+  }
+}
+
+function resetAddPetForm() {
+  document.getElementById('add-pet-title').textContent = 'Add Pet';
+  ['pet-name','pet-breed','pet-age','pet-weight','pet-color','pet-microchip','pet-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('pet-species').value='';
+  document.getElementById('pet-sex').value='';
+  document.getElementById('pet-photo-data').value='';
+  document.getElementById('pet-photo-preview').style.display='none';
+  document.getElementById('photo-placeholder').style.display='block';
+  document.querySelectorAll('.species-item').forEach(e => e.classList.remove('selected'));
+  document.getElementById('add-pet-error').style.display='none';
+  document.getElementById('delete-pet-btn').style.display='none';
+  ['vax-rabies','vax-core','vax-bordetella','vax-lepto'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const vo=document.getElementById('vax-other'); if(vo) vo.value='';
+}
+
+function deleteCurrentEditPet() {
+  if (!confirm('Remove this pet? This cannot be undone.')) return;
+  pets = pets.filter(p => p.id !== currentEditPetId);
+  setData('pets', pets);
+  currentEditPetId = null;
+  resetAddPetForm();
+  showToast('Pet removed');
+  showPage('dashboard');
+}
+
+function deletePet(id) {
+  if (!confirm('Remove this pet?')) return;
+  pets = pets.filter(p => p.id !== id);
+  setData('pets', pets);
+  renderPetsList();
+  showToast('Pet removed');
+}
+
+/* ================================================================
+   PET DETAIL PAGE
+   ================================================================ */
+function viewPetDetail(id) {
+  const pet = pets.find(p => p.id === id);
+  if (!pet) return;
+  currentDetailPetId = id;
+
+  // Photo or emoji
+  const photoWrap = document.getElementById('detail-photo-wrap');
+  if (pet.photo) {
+    photoWrap.innerHTML = `<img src="${pet.photo}" class="pet-detail-photo" alt="${esc(pet.name)}">`;
+  } else {
+    photoWrap.innerHTML = `<div class="pet-detail-photo-placeholder">${SPECIES_EMOJI[pet.species]||'🐾'}</div>`;
+  }
+
+  document.getElementById('detail-name').textContent = pet.name;
+  const breedStr = pet.breed ? pet.breed : cap(pet.species);
+  document.getElementById('detail-species-breed').textContent = breedStr;
+  if (pet.age_years != null) {
+    const ageEl = document.getElementById('detail-age-pill');
+    ageEl.textContent = pet.age_years + ' yr old';
+    ageEl.style.display = 'inline-block';
+  } else {
+    document.getElementById('detail-age-pill').style.display = 'none';
+  }
+
+  // Detail rows
+  const rows = [];
+  if (pet.species) rows.push(['Species', cap(pet.species)]);
+  if (pet.breed) rows.push(['Breed', pet.breed]);
+  if (pet.sex) rows.push(['Sex', pet.sex]);
+  if (pet.color) rows.push(['Color / Markings', pet.color]);
+  if (pet.weight_lbs != null) rows.push(['Weight', pet.weight_lbs + ' lbs']);
+  if (pet.age_years != null) rows.push(['Age', pet.age_years + ' years']);
+  if (pet.microchip) rows.push(['Microchip', pet.microchip]);
+
+  document.getElementById('detail-rows').innerHTML = rows.map(([lbl,val]) =>
+    `<div class="detail-row"><span class="detail-label">${esc(lbl)}</span><span class="detail-value">${esc(val)}</span></div>`
+  ).join('') || '<p class="text-muted" style="font-size:14px;">No details added yet.</p>';
+
+  if (pet.notes) {
+    document.getElementById('detail-notes').textContent = pet.notes;
+    document.getElementById('detail-notes-wrap').style.display = 'block';
+  } else {
+    document.getElementById('detail-notes-wrap').style.display = 'none';
+  }
+
+  renderVaccineTab(pet);
+  renderMedTab(pet);
+  // Reset to profile tab
+  document.querySelectorAll('.pet-tab').forEach((b,i) => {
+    b.classList.toggle('active', i===0);
+  });
+  ['profile','vaccines','meds'].forEach((t,i) => {
+    document.getElementById('pet-tab-'+t).style.display = i===0?'block':'none';
+  });
+
+  showPage('pet-detail');
+}
+
+function startTriageForDetail() {
+  if (currentDetailPetId) startTriage(currentDetailPetId);
+  else startTriage(null);
+}
+
+/* ================================================================
+   TRIAGE
+   ================================================================ */
+function startTriage(petId) {
+  currentTriage = { petId:null, petName:'', species:'dog', symptoms:'', followUpAnswers:{} };
+  if (petId) {
+    const pet = pets.find(p => p.id === petId);
+    if (pet) {
+      currentTriage.petId = pet.id;
+      currentTriage.petName = pet.name;
+      currentTriage.species = pet.species;
+      updateBanner(); populateTags();
+      document.getElementById('triage-symptoms').value='';
+      showPage('triage-2'); return;
+    }
+  }
+  showPage('triage-1');
+}
+
+function renderTriagePetSelect() {
+  const el = document.getElementById('triage-pet-select');
+  if (!pets.length) { el.innerHTML='<p class="text-muted" style="font-size:14px;margin-bottom:4px;">No saved pets — fill in a name and species below.</p>'; return; }
+  el.innerHTML = '<p style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">My Pets</p>'
+    + pets.map(p => `<div class="choice-option" onclick="pickTriagePet(${p.id},this)">
+        <span style="font-size:24px;">${SPECIES_EMOJI[p.species]||'🐾'}</span>
+        <div><div style="font-weight:700;">${esc(p.name)}</div><div style="font-size:13px;color:var(--muted);">${cap(p.species)}</div></div>
+      </div>`).join('');
+}
+
+function pickTriagePet(id, el) {
+  const pet = pets.find(p => p.id===id);
+  if (!pet) return;
+  currentTriage.petId=pet.id; currentTriage.petName=pet.name; currentTriage.species=pet.species;
+  document.querySelectorAll('#triage-pet-select .choice-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('triage-pet-name').value='';
+}
+
+function goToTriageStep2() {
+  if (!currentTriage.petId) {
+    currentTriage.petName = document.getElementById('triage-pet-name').value.trim()||'My Pet';
+    currentTriage.species = document.getElementById('triage-pet-species').value||'dog';
+  }
+  updateBanner(); populateTags();
+  document.getElementById('triage-symptoms').value='';
+  showPage('triage-2');
+}
+
+function updateBanner() {
+  document.getElementById('triage-banner-emoji').textContent = SPECIES_EMOJI[currentTriage.species]||'🐾';
+  document.getElementById('triage-banner-name').textContent = currentTriage.petName||'My Pet';
+  document.getElementById('triage-banner-species').textContent = cap(currentTriage.species);
+}
+
+function populateTags() {
+  const tags = QUICK_TAGS[currentTriage.species]||QUICK_TAGS.dog;
+  document.getElementById('quick-tags').innerHTML = tags.map(t =>
+    `<span class="symptom-tag" data-tag="${esc(t)}" onclick="addTag(this)">${esc(t)}</span>`).join('');
+}
+
+function addTag(el) {
+  const tag = el.dataset.tag.toLowerCase();
+  const ta = document.getElementById('triage-symptoms');
+  ta.value = ta.value.trim() ? ta.value.trim()+', '+tag : tag;
+  el.classList.add('used');
+}
+
+function goToTriageStep3() {
+  const sym = document.getElementById('triage-symptoms').value.trim();
+  if (!sym) { showToast("Please describe your pet's symptoms",'error'); return; }
+  currentTriage.symptoms = sym;
+  currentTriage.followUpAnswers = {};
+  renderFollowUpQs();
+  showPage('triage-3');
+}
+
+function renderFollowUpQs() {
+  document.getElementById('follow-up-questions').innerHTML = FOLLOW_UP_QUESTIONS.map(q =>
+    `<div class="form-group" style="margin-bottom:24px;">
+      <label class="form-label" style="font-size:15px;font-weight:700;margin-bottom:10px;">${esc(q.text)}</label>
+      <div>${q.options.map(opt =>
+        `<label class="choice-option" data-key="${esc(q.id)}" data-value="${esc(opt)}" onclick="pickFollowUp(this)">
+          <input type="radio" name="fq_${esc(q.id)}" style="accent-color:var(--primary);flex-shrink:0;">
+          <span style="font-size:14px;">${esc(opt)}</span>
+        </label>`).join('')}</div>
+    </div>`).join('');
+}
+
+function pickFollowUp(el) {
+  const key=el.dataset.key, val=el.dataset.value;
+  currentTriage.followUpAnswers[key]=val;
+  document.querySelectorAll(`[name="fq_${key}"]`).forEach(inp => {
+    const p=inp.closest('label');
+    p.style.borderColor='var(--beige-deep)'; p.style.background='var(--white)'; p.style.color='var(--body)';
+  });
+  el.style.borderColor='var(--primary)'; el.style.background='rgba(200,90,23,.06)'; el.style.color='var(--primary)';
+}
+
+function submitTriage() {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled=true; btn.textContent='Analyzing…';
+  setTimeout(() => {
+    try {
+      const result = vrAnalyze(currentTriage.symptoms, currentTriage.species, currentTriage.followUpAnswers);
+      currentResult = result;
+      history.unshift({ id:Date.now(), petName:currentTriage.petName||'My Pet', condition:result.condition, level:result.level, symptoms:currentTriage.symptoms, date:new Date().toISOString() });
+      if (history.length>50) history=history.slice(0,50);
+      setData('history', history);
+      renderResult(result);
+      showPage('result');
+    } catch(e) { showToast('Something went wrong. Please try again.','error'); }
+    btn.disabled=false; btn.textContent='Get My Recommendation →';
+  }, 600);
+}
+
+/* ================================================================
+   RESULT
+   ================================================================ */
+function renderResult(data) {
+  const lvl = data.level||'green';
+  document.getElementById('result-banner').className = 'result-banner '+lvl;
+  const icons={green:'✅',yellow:'⚠️',red:'🚨'};
+  const labels={green:'WATCH & WAIT',yellow:'CALL A PRO',red:'GO NOW — EMERGENCY'};
+  document.getElementById('result-icon').textContent = icons[lvl]||'🔍';
+  document.getElementById('result-level-text').textContent = labels[lvl]||lvl.toUpperCase();
+  document.getElementById('result-condition').textContent = data.condition||'';
+  document.getElementById('result-action-banner').textContent = data.action||'';
+  document.getElementById('result-full-action').textContent = data.description||'';
+
+  // Pet info for print
+  const pet = pets.find(p => p.id===currentTriage.petId);
+  const petInfoEl = document.getElementById('result-pet-info');
+  if (pet || currentTriage.petName) {
+    const petInfoContent = document.getElementById('result-pet-info-content');
+    const details = [
+      pet?.breed ? `Breed: ${pet.breed}` : null,
+      pet?.age_years != null ? `Age: ${pet.age_years} yr` : null,
+      pet?.weight_lbs != null ? `Weight: ${pet.weight_lbs} lbs` : null,
+      pet?.sex ? `Sex: ${pet.sex}` : null,
+      pet?.color ? `Color: ${pet.color}` : null,
+    ].filter(Boolean);
+    petInfoContent.innerHTML = `<div style="font-weight:700;margin-bottom:6px;">${esc(currentTriage.petName||'My Pet')} (${cap(currentTriage.species)})</div>
+      ${details.length ? `<p style="font-size:13px;color:var(--muted);">${details.join(' · ')}</p>` : ''}
+      <p style="font-size:13px;margin-top:6px;"><strong>Symptoms:</strong> ${esc(currentTriage.symptoms)}</p>
+      <p style="font-size:11px;color:var(--muted);margin-top:4px;">Date: ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</p>`;
+    petInfoEl.style.display='block';
+  } else { petInfoEl.style.display='none'; }
+
+  const doSec=document.getElementById('result-do-section'), doList=document.getElementById('result-do-list');
+  if (data.do&&data.do.length) { doList.innerHTML=data.do.map(i=>`<li><span class="do-dot do">✓</span>${esc(i)}</li>`).join(''); doSec.style.display='block'; }
+  else doSec.style.display='none';
+
+  const dontSec=document.getElementById('result-dont-section'), dontList=document.getElementById('result-dont-list');
+  if (data.dont&&data.dont.length) { dontList.innerHTML=data.dont.map(i=>`<li><span class="do-dot dont">✕</span>${esc(i)}</li>`).join(''); dontSec.style.display='block'; }
+  else dontSec.style.display='none';
+
+  const resSec=document.getElementById('result-resources'), resList=document.getElementById('result-resources-list');
+  if (data.resources&&data.resources.length) {
+    resList.innerHTML=data.resources.map(r=>`<div class="resource-card"><div><div class="label">${esc(r.label||r.name||'')}</div><div class="phone">${esc(r.phone||'')}</div></div>${r.phone?`<a href="tel:${r.phone.replace(/\D/g,'')}"><button class="call-btn">📞 Call</button></a>`:''}</div>`).join('');
+    resSec.style.display='block';
+  } else resSec.style.display='none';
+  document.getElementById('find-vet-link').style.display = lvl==='red' ? 'block' : 'none';
+}
+
+/* ================================================================
+   PRINT INTAKE FORM
+   ================================================================ */
+function printIntake(data) {
+  document.getElementById('share-modal').classList.remove('open');
+  const d = data || buildCurrentIntakeData();
+  if (!d) { showToast('No intake data to print','error'); return; }
+
+  const lvl = d.result?.level||'green';
+  const lvlLabel = {red:'EMERGENCY — GO NOW',yellow:'CALL A VET TODAY',green:'MONITOR AT HOME'}[lvl];
+  const pet = d.petProfile||{};
+  const when = d.date ? new Date(d.date) : new Date();
+  const dateStr = when.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const timeStr = when.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+  // Helper: one labeled field with an underline
+  function pf(label, value, flex) {
+    const fStyle = flex ? `style="flex:${flex}"` : '';
+    const valClass = value ? '' : ' blank';
+    return `<div class="pf-f" ${fStyle}><div class="lbl">${label}</div><div class="val${valClass}">${value ? esc(String(value)) : '&nbsp;'}</div></div>`;
+  }
+  // Checkbox row
+  function cbRow(label, activeVal, options) {
+    return `<div class="pf-checkrow">
+      <div class="lbl">${label}:</div>
+      <div class="opts">${options.map(o=>`<div class="opt"><span class="pf-cb${activeVal===o?' on':''}"></span> <span>${o}</span></div>`).join('')}</div>
+    </div>`;
+  }
+  // Format date strings
+  function fmtDate(v) {
+    return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? new Date(v+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : (v||'');
+  }
+
+  const vax = pet.vaccines||{};
+  const fqMap = { duration:'Symptom Duration', eating:'Eating & Drinking', energy:'Energy Level', other_symptoms:'Other Symptoms' };
+  const fqEntries = d.followUpAnswers ? Object.entries(d.followUpAnswers) : [];
+
+  // Sex checkbox logic
+  let sexVal = '';
+  if (pet.sex) {
+    if (pet.sex.includes('Male') && pet.sex.includes('neutered')) sexVal = 'Male (Neutered)';
+    else if (pet.sex.includes('Female') && pet.sex.includes('spayed')) sexVal = 'Female (Spayed)';
+    else if (pet.sex.includes('Male')) sexVal = 'Male';
+    else if (pet.sex.includes('Female')) sexVal = 'Female';
+  }
+
+  const html = `
+    <div class="pf-top">
+      <div>
+        <div class="pf-logo">Vet<span>Ready</span></div>
+        <div class="pf-tagline">vetready.app &middot; Pet Health Triage</div>
+      </div>
+      <div class="pf-date-block"><strong>${dateStr}</strong><br>${timeStr}</div>
+    </div>
+    <hr class="pf-rule">
+    <div class="pf-title">Emergency Pet Intake Summary</div>
+
+    <div class="pf-alert ${lvl}">
+      <div class="pf-alert-level">Triage Result</div>
+      <div class="pf-alert-condition">${esc(d.result?.condition||'')}</div>
+      <div class="pf-alert-action">${esc(lvlLabel)}</div>
+    </div>
+
+    <div class="pf-sec">Owner &amp; Contact</div>
+    <div class="pf-row">${pf('Owner Name', d.ownerName, 2)}${pf('Date / Time', dateStr+' &middot; '+timeStr, 2)}</div>
+
+    <div class="pf-sec">Patient (Pet) Information</div>
+    <div class="pf-row">
+      ${pf('Pet Name', pet.name||d.petName)}
+      ${pf('Species', pet.species?cap(pet.species):'')}
+      ${pf('Breed', pet.breed||'')}
+    </div>
+    <div class="pf-row">
+      ${pf('Age', pet.age_years!=null?pet.age_years+' yr':'')}
+      ${pf('Weight', pet.weight_lbs!=null?pet.weight_lbs+' lbs':'')}
+      ${pf('Sex', pet.sex||'')}
+      ${pf('Color / Markings', pet.color||'')}
+    </div>
+    ${pet.microchip ? `<div class="pf-row">${pf('Microchip #', pet.microchip, 4)}</div>` : ''}
+
+    ${Object.values(vax).some(Boolean) ? `
+    <div class="pf-sec">Vaccination Records</div>
+    <div class="pf-row">
+      ${vax.rabies ? pf('Rabies', fmtDate(vax.rabies)) : ''}
+      ${vax.core ? pf('DHPP / FVRCP', fmtDate(vax.core)) : ''}
+      ${vax.bordetella ? pf('Bordetella', fmtDate(vax.bordetella)) : ''}
+      ${vax.lepto ? pf('Leptospirosis', fmtDate(vax.lepto)) : ''}
+    </div>
+    ${vax.other ? `<div class="pf-row">${pf('Other', vax.other, 4)}</div>` : ''}
+    ` : ''}
+
+    ${pet.meds && pet.meds.length ? `
+    <div class="pf-sec">Current Medications</div>
+    ${pet.meds.map(m => {
+      const parts = [m.dosage, FREQ_LABELS[m.frequency]||m.frequency];
+      if (m.nextDue) parts.push('Next due: '+fmtDate(m.nextDue));
+      if (m.lastGiven) parts.push('Last given: '+fmtDate(m.lastGiven));
+      return `<div class="pf-row" style="margin-bottom:8px;">
+        ${pf('Medication', m.name, 1.5)}
+        ${pf('Dosage', m.dosage||'')}
+        ${pf('Frequency', FREQ_LABELS[m.frequency]||m.frequency||'')}
+        ${pf('Next Due', fmtDate(m.nextDue))}
+      </div>${m.notes ? `<div style="font-size:8.5pt;color:#555;padding:0 4px 6px;font-style:italic;">${esc(m.notes)}</div>` : ''}`;
+    }).join('')}
+    ` : ''}
+
+    ${pet.notes ? `
+    <div class="pf-sec">Medical History &amp; Known Conditions</div>
+    <div class="pf-box">${esc(pet.notes)}</div>
+    ` : ''}
+
+    <div class="pf-sec">Reason for Visit — Reported Symptoms</div>
+    <div class="pf-box">${esc(d.symptoms||'')}</div>
+    ${fqEntries.length ? `<div class="pf-row" style="flex-wrap:wrap;gap:14px;">${fqEntries.map(([k,v])=>pf(fqMap[k]||k,v)).join('')}</div>` : ''}
+
+    <div class="pf-sec">Triage Recommendation</div>
+    <div class="pf-rec">
+      <strong>${esc(d.result?.action||'')}</strong>
+      ${esc(d.result?.description||'')}
+    </div>
+    ${d.result?.do?.length ? `<div class="pf-listhead">DO THIS:</div>${d.result.do.map(i=>`<div class="pf-li do">${esc(i)}</div>`).join('')}` : ''}
+    ${d.result?.dont?.length ? `<div class="pf-listhead" style="margin-top:8px;">DO NOT DO:</div>${d.result.dont.map(i=>`<div class="pf-li dont">${esc(i)}</div>`).join('')}` : ''}
+
+    <div class="pf-footer">
+      VetReady is a triage guidance tool &mdash; not a substitute for professional veterinary diagnosis or treatment.<br>
+      Generated by VetReady &middot; vetready.app &middot; ${dateStr}
+    </div>`;
+
+  document.getElementById('print-frame').innerHTML = html;
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => document.getElementById('print-frame').innerHTML = '', 2000);
+  }, 150);
+}
+
+function buildCurrentIntakeData() {
+  if (!currentResult) return null;
+  const pet = pets.find(p => p.id===currentTriage.petId);
+  return {
+    ownerName: getData('name',''),
+    petName: currentTriage.petName,
+    species: currentTriage.species,
+    symptoms: currentTriage.symptoms,
+    followUpAnswers: currentTriage.followUpAnswers,
+    result: { level:currentResult.level, condition:currentResult.condition, action:currentResult.action, description:currentResult.description, do:currentResult.do, dont:currentResult.dont },
+    petProfile: pet ? { name:pet.name, species:pet.species, breed:pet.breed, age_years:pet.age_years, weight_lbs:pet.weight_lbs, color:pet.color, sex:pet.sex, microchip:pet.microchip, notes:pet.notes, vaccines:pet.vaccines, meds:pet.meds } : null,
+    date: new Date().toISOString()
+  };
+}
+
+/* ================================================================
+   SHARE WITH VET
+   ================================================================ */
+function openShareModal() {
+  if (!currentResult) { showToast('Complete a symptom check first','error'); return; }
+  const pet = pets.find(p => p.id===currentTriage.petId);
+  const sharePayload = {
+    ownerName: getData('name',''),
+    petName: currentTriage.petName,
+    species: currentTriage.species,
+    symptoms: currentTriage.symptoms,
+    followUpAnswers: currentTriage.followUpAnswers,
+    result: { level:currentResult.level, condition:currentResult.condition, action:currentResult.action, description:currentResult.description, do:currentResult.do, dont:currentResult.dont },
+    petProfile: pet ? { name:pet.name, species:pet.species, breed:pet.breed, age_years:pet.age_years, weight_lbs:pet.weight_lbs, color:pet.color, sex:pet.sex, microchip:pet.microchip, notes:pet.notes, vaccines:pet.vaccines, meds:pet.meds } : null,
+    date: new Date().toISOString()
+  };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(sharePayload))));
+  const base = window.location.href.split('?')[0];
+  const url = base + '?intake=' + encoded;
+  document.getElementById('share-url-text').textContent = url;
+  document.getElementById('share-modal').classList.add('open');
+}
+
+function closeShareModal(e) {
+  if (!e || e.target===document.getElementById('share-modal')) {
+    document.getElementById('share-modal').classList.remove('open');
+  }
+}
+
+function copyShareLink() {
+  const url = document.getElementById('share-url-text').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast('Link copied! 📋','success'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value=url; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('Link copied! 📋','success');
+  }
+}
+
+/* ================================================================
+   INTAKE VIEW (shared link — pet parent / anyone)
+   ================================================================ */
+function renderIntakeView(data) {
+  const el = document.getElementById('intake-view-content');
+  el.innerHTML = buildIntakeHTML(data);
+}
+
+function buildIntakeHTML(data) {
+  if (!data) return '<p class="text-muted">Invalid intake data.</p>';
+  const lvl = data.result?.level||'green';
+  const lvlColors = {red:'#7A1E1E',yellow:'#7A5200',green:'#2D5A3D'};
+  const lvlLabels = {red:'🚨 EMERGENCY — GO NOW',yellow:'⚠️ CALL A VET TODAY',green:'✅ MONITOR AT HOME'};
+  const pet = data.petProfile||{};
+  const petDetails = [
+    pet.species ? cap(pet.species) : null,
+    pet.breed||null,
+    pet.age_years!=null ? pet.age_years+' yr':null,
+    pet.weight_lbs!=null ? pet.weight_lbs+' lbs':null,
+    pet.sex||null,
+    pet.color||null,
+  ].filter(Boolean).join(' · ');
+
+  return `
+    <div style="background:${lvlColors[lvl]};border-radius:14px;padding:18px 20px;margin-bottom:20px;text-align:center;">
+      <div style="color:rgba(255,255,255,.75);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Triage Result</div>
+      <div style="color:#fff;font-size:20px;font-weight:800;">${esc(data.result?.condition||'Unknown')}</div>
+      <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:6px;">${esc(lvlLabels[lvl])}</div>
+    </div>
+    <div class="section-title">Patient Information</div>
+    <div class="card" style="padding:16px 20px;margin-bottom:16px;">
+      <div class="detail-row"><span class="detail-label">Pet Name</span><span class="detail-value">${esc(data.petName||'Unknown')}</span></div>
+      ${petDetails ? `<div class="detail-row"><span class="detail-label">Details</span><span class="detail-value" style="font-size:13px;">${esc(petDetails)}</span></div>` : ''}
+      ${pet.microchip ? `<div class="detail-row"><span class="detail-label">Microchip</span><span class="detail-value">${esc(pet.microchip)}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-label">Owner</span><span class="detail-value">${esc(data.ownerName||'Unknown')}</span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${data.date ? new Date(data.date).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Unknown'}</span></div>
+    </div>
+    ${pet.notes ? `<div class="section-title">Medical Notes</div><div class="card card-beige" style="padding:14px 16px;margin-bottom:16px;"><p style="font-size:14px;line-height:1.6;">${esc(pet.notes)}</p></div>` : ''}
+    <div class="section-title">Reported Symptoms</div>
+    <div class="card" style="padding:14px 16px;margin-bottom:16px;">
+      <p style="font-size:14px;line-height:1.6;">${esc(data.symptoms||'None reported')}</p>
+      ${data.followUpAnswers && Object.keys(data.followUpAnswers).length ? '<div style="margin-top:12px;border-top:1px solid var(--beige-mid);padding-top:10px;">'
+        + Object.entries(data.followUpAnswers).map(([k,v]) =>
+          `<div style="font-size:13px;color:var(--muted);margin-bottom:4px;"><strong>${esc(k.charAt(0).toUpperCase()+k.slice(1).replace('_',' '))}:</strong> ${esc(v)}</div>`
+        ).join('') + '</div>' : ''}
+    </div>
+    <div class="section-title">Recommendation</div>
+    <div class="card" style="padding:14px 16px;margin-bottom:16px;">
+      <p style="font-size:14px;line-height:1.6;font-weight:600;margin-bottom:8px;">${esc(data.result?.action||'')}</p>
+      <p style="font-size:13px;line-height:1.6;color:var(--muted);">${esc(data.result?.description||'')}</p>
+    </div>
+    ${data.result?.do?.length ? `<div class="section-title">Do This</div><div class="card" style="padding:10px 16px;margin-bottom:16px;"><ul class="do-dont-list">${data.result.do.map(i=>`<li><span class="do-dot do">✓</span>${esc(i)}</li>`).join('')}</ul></div>` : ''}
+    ${data.result?.dont?.length ? `<div class="section-title">Do NOT Do This</div><div class="card" style="padding:10px 16px;margin-bottom:16px;"><ul class="do-dont-list">${data.result.dont.map(i=>`<li><span class="do-dot dont">✕</span>${esc(i)}</li>`).join('')}</ul></div>` : ''}
+    <p style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6;margin-top:16px;">⚠️ Generated by VetReady — a triage guidance tool, not a substitute for professional veterinary diagnosis or treatment.</p>`;
+}
+
+function saveIntakeToVetPortal() {
+  if (!sharedIntakeData) return;
+  const intakes = JSON.parse(localStorage.getItem('vr_vet_intakes')||'[]');
+  const newIntake = { ...sharedIntakeData, savedAt: new Date().toISOString(), id: Date.now() };
+  intakes.unshift(newIntake);
+  localStorage.setItem('vr_vet_intakes', JSON.stringify(intakes));
+  showToast('Saved to Vet Portal! 🏥','success');
+}
+
+/* ================================================================
+   VETS NEARBY
+   ================================================================ */
+let selectedVetType = 'emergency';
+let vetSearchResults = [];
+let vetSearchCenter = null;
+let currentVetDetail = null;
+
+function selectVetType(type, el) {
+  selectedVetType = type;
+  document.querySelectorAll('.vet-type-card').forEach(c => {
+    c.classList.remove('selected-vet');
+    const check = c.querySelector('.vtype-check');
+    if (check) check.style.opacity = '0';
+  });
+  el.classList.add('selected-vet');
+  const check = el.querySelector('.vtype-check');
+  if (check) check.style.opacity = '1';
+}
+
+async function searchVets() {
+  const city = (document.getElementById('vet-search-city').value || '').trim();
+  const state = (document.getElementById('vet-search-state').value || '').trim();
+  const zip  = (document.getElementById('vet-search-zip').value  || '').trim();
+  if (!city && !zip) {
+    showToast('Enter a city, state, or ZIP code to search', 'error');
+    return;
+  }
+  setVetLoading(true);
+  try {
+    const coords = await geocodeLocation(city, state, zip);
+    await doVetSearch(coords.lat, coords.lng);
+  } catch(e) {
+    setVetLoading(false);
+    showToast(e.message || 'Location not found — check your entry', 'error');
+  }
+}
+
+async function useCurrentLocationSearch() {
+  if (!navigator.geolocation) {
+    showToast('Enter a city or ZIP to search', 'error');
+    return;
+  }
+  setVetLoading(true);
+  navigator.geolocation.getCurrentPosition(
+    async pos => {
+      try {
+        await doVetSearch(pos.coords.latitude, pos.coords.longitude);
+      } catch(e) {
+        setVetLoading(false);
+        showToast('Search failed — check your connection', 'error');
+      }
+    },
+    () => {
+      setVetLoading(false);
+      showToast('Could not get location — enter a city or ZIP instead', 'error');
+    },
+    { timeout: 10000 }
+  );
+}
+
+function setVetLoading(on) {
+  const loadEl   = document.getElementById('vet-search-loading');
+  const resultEl = document.getElementById('vet-results-section');
+  if (loadEl)   loadEl.style.display   = on ? 'block' : 'none';
+  if (resultEl && on) resultEl.style.display = 'none';
+}
+
+async function geocodeLocation(city, state, zip) {
+  // Strategy: Overpass first (same service we already use — 3 mirrors),
+  // then fall back to HTTP geocoders. Track whether errors are network
+  // failures vs genuine "not found" so we show the right message.
+  let networkFailed = false;
+
+  // ── 1. Overpass postal-code / city node lookup ──────────────────────
+  const overpassCoords = await geocodeViaOverpass(zip, city);
+  if (overpassCoords) return overpassCoords;
+  // If all Overpass mirrors threw, networkFailed will be set below.
+  // We can't tell yet, so continue to external geocoders.
+
+  // ── 2. zippopotam.us  (ZIP only, very reliable for US) ─────────────
+  if (zip && /^\d{5}$/.test(zip)) {
+    try {
+      const r = await fetchWithTimeout(`https://api.zippopotam.us/us/${zip}`, {}, 7000);
+      if (r.status === 404) throw new Error('__notfound__');
+      if (r.ok) {
+        const d = await r.json();
+        const p = d.places && d.places[0];
+        if (p) return { lat: parseFloat(p.latitude), lng: parseFloat(p.longitude) };
+      }
+    } catch(e) {
+      if (e.message === '__notfound__') {
+        throw new Error('That ZIP code wasn\'t found — is it a valid US ZIP?');
+      }
+      networkFailed = true;
+    }
+  }
+
+  // ── 3. Nominatim ────────────────────────────────────────────────────
+  try {
+    const url = zip
+      ? `https://nominatim.openstreetmap.org/search?postalcode=${zip}&countrycodes=us&format=json&limit=1`
+      : `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city+(state?', '+state:'')+', USA')}&format=json&limit=1`;
+    const r = await fetchWithTimeout(url, {}, 9000);
+    if (r.ok) {
+      const d = await r.json();
+      if (d && d.length) return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
+      // Got a response but no results — location genuinely not found
+      const msg = zip
+        ? 'That ZIP code wasn\'t found — double-check the number'
+        : 'City not found — check spelling or add the state abbreviation';
+      throw new Error(msg);
+    }
+  } catch(e) {
+    if (e.message.includes('wasn\'t found') || e.message.includes('not found')) throw e;
+    networkFailed = true;
+  }
+
+  // ── 4. Nothing worked ───────────────────────────────────────────────
+  if (networkFailed) {
+    throw new Error('Can\'t reach location services — check your connection, or tap "Use My Current Location" instead');
+  }
+  throw new Error(zip ? 'ZIP code not found' : 'City not found — try a different spelling');
+}
+
+// Geocode using the Overpass API (already used for vet search, 3 mirrors)
+async function geocodeViaOverpass(zip, city) {
+  let q;
+  if (zip && /^\d{5}$/.test(zip)) {
+    // US postal code relations in OSM
+    q = `[out:json][timeout:10];relation["postal_code"="${zip}"];out center 1;`;
+  } else if (city) {
+    const safe = city.replace(/"/g, '');
+    q = `[out:json][timeout:10];node["name"="${safe}"]["place"~"^(city|town|village)$"](24.0,-125.0,49.5,-66.0);out center 1;`;
+  } else {
+    return null;
+  }
+  const body = 'data=' + encodeURIComponent(q);
+  for (const mirror of OVERPASS_MIRRORS) {
+    try {
+      const resp = await fetchWithTimeout(mirror, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body
+      }, 10000);
+      if (resp.ok) {
+        const data = await resp.json();
+        const el = data.elements && data.elements[0];
+        if (el) {
+          const lat = el.center ? el.center.lat : el.lat;
+          const lng = el.center ? el.center.lon : el.lon;
+          if (lat && lng) return { lat: parseFloat(lat), lng: parseFloat(lng) };
+        }
+      }
+    } catch(e) { /* try next mirror */ }
+  }
+  return null;
+}
+
+function fetchWithTimeout(url, opts, ms) {
+  const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), ms) : null;
+  return fetch(url, { ...opts, ...(ctrl ? { signal: ctrl.signal } : {}) })
+    .finally(() => timer && clearTimeout(timer));
+}
+
+async function doVetSearch(lat, lng) {
+  vetSearchCenter = { lat, lng };
+  const radiusMeters = 24140; // 15 miles
+  try {
+    const elements = await fetchVetsOverpass(lat, lng, radiusMeters);
+    const vets = elements
+      .map(el => processVetElement(el, lat, lng))
+      .filter(Boolean)
+      .sort((a, b) => a.distance - b.distance);
+    vetSearchResults = vets;
+    setVetLoading(false);
+    renderVetResults(vets);
+  } catch(e) {
+    setVetLoading(false);
+    renderVetFallback(lat, lng);
+  }
+  const section = document.getElementById('vet-results-section');
+  if (section) setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
+}
+
+const OVERPASS_MIRRORS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+];
+
+async function fetchVetsOverpass(lat, lng, radius) {
+  const q = `[out:json][timeout:20];(node["amenity"="veterinary"](around:${radius},${lat},${lng});way["amenity"="veterinary"](around:${radius},${lat},${lng}););out center tags;`;
+  const body = 'data=' + encodeURIComponent(q);
+  for (const mirror of OVERPASS_MIRRORS) {
+    try {
+      const resp = await fetchWithTimeout(mirror, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body
+      }, 18000);
+      if (resp.ok) {
+        const data = await resp.json();
+        return data.elements || [];
+      }
+    } catch(e) { /* try next mirror */ }
+  }
+  throw new Error('All vet search servers unavailable');
+}
+
+function renderVetFallback(lat, lng) {
+  const section = document.getElementById('vet-results-section');
+  const countEl = document.getElementById('vet-results-count');
+  const listEl  = document.getElementById('vet-results-list');
+  if (!section || !listEl) return;
+  section.style.display = 'block';
+  if (countEl) countEl.textContent = 'Search service unavailable';
+  const typeQ = { emergency:'emergency+animal+hospital', regular:'veterinary+clinic', specialist:'veterinary+specialist' };
+  const q = typeQ[selectedVetType] || 'veterinary+clinic';
+  const mapsUrl = `https://www.google.com/maps/search/${q}/@${lat},${lng},13z`;
+  listEl.innerHTML = `<div class="card card-beige" style="text-align:center;padding:28px 20px 24px;">
+    <div style="margin-bottom:14px;"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 010 8.49M7.76 16.24a6 6 0 010-8.49M19.07 4.93a10 10 0 010 14.14M4.93 19.07a10 10 0 010-14.14"/></svg></div>
+    <p style="font-weight:700;font-size:15px;margin-bottom:8px;">Couldn't reach search servers</p>
+    <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:18px;">This can happen on slow or restricted networks. You can search directly in Google Maps instead — it shows ratings, photos, and verified hours.</p>
+    <button class="btn btn-primary" onclick="window.open('${mapsUrl}','_blank')">🗺️ Search in Google Maps</button>
+  </div>`;
+}
+
+function processVetElement(el, userLat, userLng) {
+  const lat = el.lat !== undefined ? el.lat : (el.center ? el.center.lat : null);
+  const lng = el.lon !== undefined ? el.lon : (el.center ? el.center.lon : null);
+  if (!lat || !lng) return null;
+  const tags = el.tags || {};
+  if (!tags.name) return null;
+  const phone   = tags.phone || tags['contact:phone'] || tags['phone:1'] || null;
+  const website = tags.website || tags['contact:website'] || null;
+  const parts   = [];
+  if (tags['addr:housenumber'] && tags['addr:street']) parts.push(tags['addr:housenumber'] + ' ' + tags['addr:street']);
+  else if (tags['addr:street']) parts.push(tags['addr:street']);
+  if (tags['addr:city'])    parts.push(tags['addr:city']);
+  if (tags['addr:state'])   parts.push(tags['addr:state']);
+  if (tags['addr:postcode']) parts.push(tags['addr:postcode']);
+  return {
+    id: el.id,
+    name: tags.name,
+    lat, lng,
+    distance: haversineDistance(userLat, userLng, lat, lng),
+    phone, website,
+    hours:     tags.opening_hours || null,
+    address:   parts.length ? parts.join(', ') : null,
+    emergency: tags.emergency === 'yes' || /emergency|urgent/i.test(tags.name),
+  };
+}
+
+function haversineDistance(lat1, lng1, lat2, lng2) {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* --- Opening hours helpers --- */
+function parseOpenHours(ohStr) {
+  if (!ohStr) return { isOpen: null, todayStr: null, allDay: false };
+  const s = ohStr.trim();
+  if (s === '24/7') return { isOpen: true, todayStr: '24 / 7', allDay: true };
+  const now = new Date();
+  const CODES = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const todayIdx = now.getDay();
+  for (const rule of s.split(';').map(r => r.trim()).filter(Boolean)) {
+    const m = rule.match(/^([\w,\- ]+?)\s+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})$/);
+    if (!m) continue;
+    if (!dayMatchesIdx(m[1].trim(), todayIdx, CODES)) continue;
+    const openM = timeToMins(m[2]);
+    let closeM  = timeToMins(m[3]);
+    if (closeM === 0) closeM = 1440;
+    const nowM = now.getHours()*60 + now.getMinutes();
+    return { isOpen: nowM >= openM && nowM < closeM, todayStr: fmtTime(m[2]) + ' – ' + fmtTime(m[3]), allDay: false };
+  }
+  return { isOpen: null, todayStr: s.length < 80 ? s : null, allDay: false };
+}
+
+function dayMatchesIdx(dayPart, idx, codes) {
+  const range = dayPart.match(/^([A-Za-z]{2})-([A-Za-z]{2})$/);
+  if (range) {
+    const s = codes.indexOf(range[1]), e = codes.indexOf(range[2]);
+    if (s < 0 || e < 0) return false;
+    return s <= e ? (idx >= s && idx <= e) : (idx >= s || idx <= e);
+  }
+  return dayPart.split(',').map(d => d.trim()).includes(codes[idx]);
+}
+
+function timeToMins(t) { const [h,m] = t.split(':').map(Number); return h*60+(m||0); }
+function fmtTime(t) {
+  const [h,m] = t.split(':').map(Number);
+  return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+}
+
+/* --- Result rendering --- */
+function renderVetResults(vets) {
+  const section  = document.getElementById('vet-results-section');
+  const countEl  = document.getElementById('vet-results-count');
+  const listEl   = document.getElementById('vet-results-list');
+  if (!section || !listEl) return;
+  section.style.display = 'block';
+  if (!vets.length) {
+    if (countEl) countEl.textContent = 'No results found';
+    listEl.innerHTML = `<div class="card card-beige" style="text-align:center;padding:28px 20px;">
+      <div style="margin-bottom:12px;"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></div>
+      <p style="color:var(--muted);font-size:14px;line-height:1.6;">No vets found within 15 miles.<br>Try a nearby city or broader location.</p>
+    </div>`;
+    return;
+  }
+  if (countEl) countEl.textContent = `${vets.length} vet${vets.length!==1?'s':''} found nearby`;
+  listEl.innerHTML = vets.map(vetCardHTML).join('');
+}
+
+function vetCardHTML(vet) {
+  const dist = vet.distance < 0.1 ? Math.round(vet.distance*5280)+' ft'
+             : vet.distance < 10  ? vet.distance.toFixed(1)+' mi'
+             :                      Math.round(vet.distance)+' mi';
+  const oh = parseOpenHours(vet.hours);
+  let badge = '';
+  if (oh.allDay)        badge = `<span class="open-badge allday">● Open 24/7</span>`;
+  else if (oh.isOpen === true)  badge = `<span class="open-badge open">● Open Now</span>`;
+  else if (oh.isOpen === false) badge = `<span class="open-badge closed">● Closed</span>`;
+  else if (vet.hours)           badge = `<span class="open-badge unknown">See hours</span>`;
+  const emTag = vet.emergency
+    ? `<span style="background:#F8D7DA;color:var(--danger);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;">24/7</span>` : '';
+  return `<div class="vet-result-card" onclick="viewVetDetail(${vet.id})">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:7px;">
+      <div style="flex:1;font-size:16px;font-weight:700;color:var(--body);line-height:1.3;">${esc(vet.name)}${emTag}</div>
+      <div style="flex-shrink:0;font-size:13px;font-weight:700;color:var(--primary);">📍 ${esc(dist)}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:${vet.phone?'7px':'0'};">
+      ${badge}
+      ${oh.todayStr && !oh.allDay ? `<span style="font-size:12px;color:var(--muted);">${esc(oh.todayStr)}</span>` : ''}
+    </div>
+    ${vet.phone ? `<div style="font-size:13px;color:var(--muted);">📞 ${esc(vet.phone)}</div>` : ''}
+    ${vet.address ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">📌 ${esc(vet.address)}</div>` : ''}
+    <div style="text-align:right;margin-top:8px;"><span style="font-size:12px;color:var(--primary);font-weight:600;">More info →</span></div>
+  </div>`;
+}
+
+function viewVetDetail(id) {
+  const vet = vetSearchResults.find(v => v.id === id);
+  if (!vet) return;
+  currentVetDetail = vet;
+  const oh = parseOpenHours(vet.hours);
+  const dist = vet.distance < 0.1 ? Math.round(vet.distance*5280)+' ft away'
+             : vet.distance < 10  ? vet.distance.toFixed(1)+' mi away'
+             :                      Math.round(vet.distance)+' mi away';
+
+  let statusBadge = '';
+  if (oh.allDay)        statusBadge = `<span class="open-badge allday" style="font-size:13px;padding:5px 14px;">● Open 24/7</span>`;
+  else if (oh.isOpen === true)  statusBadge = `<span class="open-badge open" style="font-size:13px;padding:5px 14px;">● Open Now</span>`;
+  else if (oh.isOpen === false) statusBadge = `<span class="open-badge closed" style="font-size:13px;padding:5px 14px;">● Closed Now</span>`;
+
+  const phoneClean = vet.phone ? vet.phone.replace(/\D/g,'') : '';
+
+  const hoursHtml = !vet.hours ? '' : `
+    <div class="section-title" style="margin-top:4px;">Hours</div>
+    <div class="card card-beige" style="padding:14px 18px;margin-bottom:16px;">
+      ${oh.allDay
+        ? '<div style="font-size:15px;font-weight:700;color:var(--success);">Open 24 hours / 7 days</div>'
+        : oh.todayStr
+          ? `<div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Today</div>
+             <div style="font-size:16px;font-weight:700;color:var(--body);">${esc(oh.todayStr)}</div>
+             <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7;">${esc(vet.hours)}</div>`
+          : `<div style="font-size:13px;color:var(--body);line-height:1.7;">${esc(vet.hours)}</div>`
+      }
+    </div>`;
+
+  document.getElementById('vet-detail-content').innerHTML = `
+    <div style="background:var(--dark);padding:30px 20px 34px;text-align:center;">
+      <div style="margin-bottom:14px;">${vet.emergency
+        ? '<svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#FF8080" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d=\'M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7z\'/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16.5" r="1" fill="#FF8080" stroke="none"/></svg>'
+        : '<svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#C9A880" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="1"/><path d=\'M3 10h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2\'/><line x1="12" y1="13" x2="12" y2="17"/><line x1="10" y1="15" x2="14" y2="15"/></svg>'
+      }</div>
+      <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:8px;">${esc(vet.name)}</div>
+      <div style="font-size:13px;color:#C9A880;margin-bottom:14px;">📍 ${esc(dist)}</div>
+      ${statusBadge ? `<div style="display:flex;justify-content:center;">${statusBadge}</div>` : ''}
+    </div>
+    <div style="padding:20px 20px 0;">
+
+      ${vet.phone ? `
+      <div class="section-title">Phone</div>
+      <div class="card" style="padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div style="font-size:17px;font-weight:700;color:var(--body);">${esc(vet.phone)}</div>
+        <a href="tel:${phoneClean}" style="flex-shrink:0;"><button class="call-btn" style="font-size:14px;padding:11px 20px;">📞 Call</button></a>
+      </div>` : ''}
+
+      ${vet.address ? `
+      <div class="section-title" style="margin-top:4px;">Address</div>
+      <div class="card card-beige" style="padding:14px 18px;margin-bottom:16px;">
+        <div style="font-size:14px;color:var(--body);line-height:1.6;">${esc(vet.address)}</div>
+      </div>` : ''}
+
+      ${hoursHtml}
+
+      ${vet.website ? `
+      <div class="section-title" style="margin-top:4px;">Website</div>
+      <div class="card" style="padding:14px 18px;margin-bottom:16px;">
+        <a href="${esc(vet.website)}" target="_blank" rel="noopener" style="color:var(--primary);font-size:14px;font-weight:600;text-decoration:none;word-break:break-all;">${esc(vet.website.replace(/^https?:\/\//,''))}</a>
+      </div>` : ''}
+
+      ${!vet.phone && !vet.address && !vet.hours && !vet.website ? `
+      <div class="card card-beige" style="text-align:center;padding:20px;margin-bottom:16px;">
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;">Limited info available from the community map.<br>Tap "Open in Maps" for directions and full details.</p>
+      </div>` : ''}
+
+      <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:24px;margin-top:4px;">
+        <button class="btn btn-primary" style="font-size:15px;" onclick="openVetInMaps()">🗺️ Get Directions</button>
+        <button class="btn btn-secondary" onclick="showPage('vets-nearby')">← Back to Results</button>
+      </div>
+    </div>`;
+  showPage('vet-detail');
+}
+
+function openVetInMaps() {
+  if (!currentVetDetail) return;
+  const { lat, lng, name } = currentVetDetail;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const url = isIOS
+    ? `maps://maps.apple.com/?daddr=${lat},${lng}&q=${encodeURIComponent(name)}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  window.open(url, '_blank');
+}
+
+/* ================================================================
+   VET PORTAL
+   ================================================================ */
+function goVetPortal() {
+  const profile = getVetProfile();
+  const session = sessionStorage.getItem('vr_vet_session');
+  if (profile && session === 'active') {
+    populateVetDashboard(profile);
+    showPage('vet-dashboard');
+  } else {
+    showPage('vet-login');
+  }
+}
+
+function goBackFromVet() {
+  const name = getData('name','');
+  if (name) showPage('dashboard');
+  else showPage('setup');
+}
+
+function initVetMode() {
+  const profile = getVetProfile();
+  const session = sessionStorage.getItem('vr_vet_session');
+  if (profile && session === 'active') {
+    populateVetDashboard(profile);
+    showPage('vet-dashboard');
+  } else {
+    showPage('vet-login');
+  }
+}
+
+function getVetProfile() {
+  try { return JSON.parse(localStorage.getItem('vr_vet_profile')||'null'); } catch(e){ return null; }
+}
+
+function doVetRegister() {
+  const errEl = document.getElementById('vet-reg-error');
+  errEl.style.display='none';
+
+  const clinicName = document.getElementById('reg-clinic-name').value.trim();
+  const doctorName = document.getElementById('reg-doctor-name').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const password = document.getElementById('reg-password').value;
+  const license = document.getElementById('reg-license').value.trim();
+  const address = document.getElementById('reg-address').value.trim();
+  const city = document.getElementById('reg-city').value.trim();
+  const state = document.getElementById('reg-state').value.trim().toUpperCase();
+  const zip = document.getElementById('reg-zip').value.trim();
+
+  if (!clinicName) { errEl.textContent='Clinic name is required.'; errEl.style.display='block'; return; }
+  if (!doctorName) { errEl.textContent='Doctor / contact name is required.'; errEl.style.display='block'; return; }
+  if (!phone) { errEl.textContent='Phone number is required.'; errEl.style.display='block'; return; }
+  if (!email || !email.includes('@')) { errEl.textContent='Please enter a valid email address.'; errEl.style.display='block'; return; }
+  if (password.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; return; }
+
+  const existing = getVetProfile();
+  if (existing && existing.email !== email) {
+    if (!confirm('A clinic is already registered on this device. Overwrite with new registration?')) return;
+  }
+
+  const profile = {
+    clinicName, doctorName, phone, email, password, license,
+    address, city, state, zip,
+    registeredAt: new Date().toISOString()
+  };
+  localStorage.setItem('vr_vet_profile', JSON.stringify(profile));
+  sessionStorage.setItem('vr_vet_session','active');
+  populateVetDashboard(profile);
+  showToast('Clinic registered! Welcome, '+doctorName+' 🏥','success');
+  showPage('vet-dashboard');
+}
+
+function doVetLogin() {
+  const errEl = document.getElementById('vet-login-error');
+  errEl.style.display='none';
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const password = document.getElementById('login-password').value;
+
+  if (!email) { errEl.textContent='Please enter your email.'; errEl.style.display='block'; return; }
+  if (!password) { errEl.textContent='Please enter your password.'; errEl.style.display='block'; return; }
+
+  const profile = getVetProfile();
+  if (!profile) {
+    errEl.textContent='No clinic registered on this device. Please register first.';
+    errEl.style.display='block'; return;
+  }
+  if (profile.email !== email) {
+    errEl.textContent='Email not found. Please check your email or register.';
+    errEl.style.display='block'; return;
+  }
+  if (profile.password !== password) {
+    errEl.textContent='Incorrect password. Please try again.';
+    errEl.style.display='block'; return;
+  }
+  sessionStorage.setItem('vr_vet_session','active');
+  populateVetDashboard(profile);
+  showPage('vet-dashboard');
+}
+
+function populateVetDashboard(profile) {
+  document.getElementById('vet-clinic-display').textContent = profile.clinicName||'Your Clinic';
+  const doctorEl = document.getElementById('vet-doctor-display');
+  let sub = profile.doctorName||'';
+  if (profile.phone) sub += (sub?' · ':'')+profile.phone;
+  if (profile.city && profile.state) sub += (sub?' · ':'')+profile.city+', '+profile.state;
+  doctorEl.textContent = sub;
+}
+
+function doVetLogout() {
+  sessionStorage.removeItem('vr_vet_session');
+  showPage('vet-login');
+}
+
+function pinNext(el, nextId) {
+  if (el.value.length===1 && nextId) document.getElementById(nextId).focus();
+}
+
+function renderVetDashboard() {
+  const profile = getVetProfile();
+  if (profile) populateVetDashboard(profile);
+  const intakes = JSON.parse(localStorage.getItem('vr_vet_intakes')||'[]');
+  const el = document.getElementById('vet-intakes-list');
+  if (!intakes.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><h3>No Intakes Yet</h3><p>When a pet owner shares an intake form with you, it will appear here.</p></div>`;
+    return;
+  }
+  el.innerHTML = intakes.map(intake => {
+    const lvl = intake.result?.level||'green';
+    const borderClass = lvl+'-border';
+    const dt = intake.savedAt ? new Date(intake.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    const lvlTag = {red:'🚨 Emergency',yellow:'⚠️ Call Today',green:'✅ Monitor'}[lvl];
+    return `<div class="intake-card ${borderClass}" onclick="viewVetIntake(${intake.id})">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="intake-title">${esc(intake.petName||'Unknown Pet')} · ${cap(intake.species||'')}</div>
+        <span class="pill" style="background:${lvl==='red'?'#F8D7DA':lvl==='yellow'?'#FFF3CD':'#D4EDDA'};color:${lvl==='red'?'var(--danger)':lvl==='yellow'?'var(--warning)':'var(--success)'};">${lvlTag}</span>
+      </div>
+      <div class="intake-meta">${esc(intake.ownerName||'')} · ${dt}</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px;">${esc((intake.symptoms||'').substring(0,80))}${(intake.symptoms||'').length>80?'…':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function viewVetIntake(id) {
+  const intakes = JSON.parse(localStorage.getItem('vr_vet_intakes')||'[]');
+  const intake = intakes.find(i => i.id===id);
+  if (!intake) return;
+  currentVetIntakeId = id;
+  document.getElementById('vet-intake-view-content').innerHTML = buildIntakeHTML(intake);
+  showPage('vet-intake-view');
+}
+
+function printCurrentVetIntake() {
+  const intakes = JSON.parse(localStorage.getItem('vr_vet_intakes')||'[]');
+  const intake = intakes.find(i => i.id===currentVetIntakeId);
+  if (intake) printIntake(intake);
+}
+
+function deleteCurrentVetIntake() {
+  if (!confirm('Remove this intake form?')) return;
+  let intakes = JSON.parse(localStorage.getItem('vr_vet_intakes')||'[]');
+  intakes = intakes.filter(i => i.id!==currentVetIntakeId);
+  localStorage.setItem('vr_vet_intakes', JSON.stringify(intakes));
+  showToast('Intake removed');
+  showPage('vet-dashboard');
+}
+
+function clearVetIntakes() {
+  if (!confirm('Clear all intake forms? This cannot be undone.')) return;
+  localStorage.removeItem('vr_vet_intakes');
+  renderVetDashboard();
+  showToast('Cleared');
+}
+
+/* ================================================================
+   MEDICATIONS
+   ================================================================ */
+let currentEditMedId = null;
+
+const FREQ_LABELS = {
+  'daily':'Once daily','twice-daily':'Twice daily','every-other-day':'Every other day',
+  'weekly':'Weekly','biweekly':'Every 2 weeks','monthly':'Monthly',
+  'every-3-months':'Every 3 months','as-needed':'As needed'
+};
+
+function switchPetTab(tab, btn) {
+  ['profile','vaccines','meds'].forEach(t => {
+    document.getElementById('pet-tab-'+t).style.display = t===tab?'block':'none';
+  });
+  document.querySelectorAll('.pet-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function showAddMed() {
+  currentEditMedId = null;
+  document.getElementById('add-med-title').textContent = 'Add Medication';
+  document.getElementById('med-name').value = '';
+  document.getElementById('med-dosage').value = '';
+  document.getElementById('med-frequency').value = 'monthly';
+  document.getElementById('med-next-due').value = '';
+  document.getElementById('med-notes').value = '';
+  document.getElementById('add-med-error').style.display = 'none';
+  document.getElementById('delete-med-btn').style.display = 'none';
+  showPage('add-med');
+}
+
+function cancelAddMed() {
+  showPage('pet-detail');
+  setTimeout(() => {
+    const medsTab = document.querySelectorAll('.pet-tab')[2];
+    if (medsTab) switchPetTab('meds', medsTab);
+  }, 30);
+}
+
+function saveMed() {
+  const name = document.getElementById('med-name').value.trim();
+  const errEl = document.getElementById('add-med-error');
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent='Please enter a medication name.'; errEl.style.display='block'; return; }
+
+  const petIdx = pets.findIndex(p => p.id === currentDetailPetId);
+  if (petIdx === -1) return;
+  if (!pets[petIdx].meds) pets[petIdx].meds = [];
+
+  const medData = {
+    name,
+    dosage: document.getElementById('med-dosage').value.trim()||null,
+    frequency: document.getElementById('med-frequency').value||'monthly',
+    nextDue: document.getElementById('med-next-due').value||null,
+    notes: document.getElementById('med-notes').value.trim()||null,
+  };
+
+  if (currentEditMedId !== null) {
+    const mIdx = pets[petIdx].meds.findIndex(m => m.id === currentEditMedId);
+    if (mIdx !== -1) pets[petIdx].meds[mIdx] = { ...pets[petIdx].meds[mIdx], ...medData };
+    currentEditMedId = null;
+  } else {
+    pets[petIdx].meds.push({ id: Date.now(), ...medData });
+  }
+
+  setData('pets', pets);
+  showToast('Medication saved!','success');
+  showPage('pet-detail');
+  setTimeout(() => {
+    const medsTab = document.querySelectorAll('.pet-tab')[2];
+    if (medsTab) switchPetTab('meds', medsTab);
+    renderMedTab(pets[petIdx]);
+  }, 30);
+}
+
+function editMed(medId) {
+  const pet = pets.find(p => p.id === currentDetailPetId);
+  if (!pet || !pet.meds) return;
+  const med = pet.meds.find(m => m.id === medId);
+  if (!med) return;
+  currentEditMedId = medId;
+  document.getElementById('add-med-title').textContent = 'Edit Medication';
+  document.getElementById('med-name').value = med.name||'';
+  document.getElementById('med-dosage').value = med.dosage||'';
+  document.getElementById('med-frequency').value = med.frequency||'monthly';
+  document.getElementById('med-next-due').value = med.nextDue||'';
+  document.getElementById('med-notes').value = med.notes||'';
+  document.getElementById('add-med-error').style.display = 'none';
+  document.getElementById('delete-med-btn').style.display = 'block';
+  showPage('add-med');
+}
+
+function deleteCurrentMed() {
+  if (!confirm('Remove this medication?')) return;
+  const petIdx = pets.findIndex(p => p.id === currentDetailPetId);
+  if (petIdx === -1) return;
+  pets[petIdx].meds = (pets[petIdx].meds||[]).filter(m => m.id !== currentEditMedId);
+  setData('pets', pets);
+  currentEditMedId = null;
+  showToast('Medication removed');
+  showPage('pet-detail');
+  setTimeout(() => {
+    const medsTab = document.querySelectorAll('.pet-tab')[2];
+    if (medsTab) switchPetTab('meds', medsTab);
+    renderMedTab(pets[petIdx]);
+  }, 30);
+}
+
+function markMedGiven(petId, medId) {
+  const petIdx = pets.findIndex(p => p.id === petId);
+  if (petIdx === -1) return;
+  const med = (pets[petIdx].meds||[]).find(m => m.id === medId);
+  if (!med) return;
+  const today = new Date();
+  med.lastGiven = today.toISOString().split('T')[0];
+  med.nextDue = calcNextDue(med.frequency, today);
+  setData('pets', pets);
+  showToast('Marked as given!','success');
+  renderDashboardReminders();
+  renderMedTab(pets[petIdx]);
+}
+
+function calcNextDue(frequency, fromDate) {
+  const d = new Date(fromDate);
+  switch(frequency) {
+    case 'daily': d.setDate(d.getDate()+1); break;
+    case 'twice-daily': d.setHours(d.getHours()+12); break;
+    case 'every-other-day': d.setDate(d.getDate()+2); break;
+    case 'weekly': d.setDate(d.getDate()+7); break;
+    case 'biweekly': d.setDate(d.getDate()+14); break;
+    case 'monthly': d.setMonth(d.getMonth()+1); break;
+    case 'every-3-months': d.setMonth(d.getMonth()+3); break;
+    default: return null;
+  }
+  return d.toISOString().split('T')[0];
+}
+
+function getMedStatus(nextDue) {
+  if (!nextDue) return 'unknown';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(nextDue+'T12:00:00'); due.setHours(0,0,0,0);
+  const diff = Math.round((due - today) / (1000*60*60*24));
+  if (diff < 0) return 'overdue';
+  if (diff === 0) return 'due-today';
+  return 'ok';
+}
+
+function renderMedTab(pet) {
+  const el = document.getElementById('detail-meds-content');
+  if (!el) return;
+  if (!pet.meds || !pet.meds.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:30px 0;"><div class="empty-icon">💊</div><h3>No medications</h3><p>Track medications and get reminders when doses are due.</p></div>`;
+    return;
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  el.innerHTML = pet.meds.map(med => {
+    const status = getMedStatus(med.nextDue);
+    let dueLabel = '';
+    if (med.frequency === 'as-needed') {
+      dueLabel = `<div class="med-due" style="color:var(--muted);">As needed</div>`;
+    } else if (med.nextDue) {
+      const due = new Date(med.nextDue+'T12:00:00'); due.setHours(0,0,0,0);
+      const diff = Math.round((due - today) / (1000*60*60*24));
+      if (diff < 0) dueLabel = `<div class="med-due overdue">Overdue by ${Math.abs(diff)} day${Math.abs(diff)!==1?'s':''}</div>`;
+      else if (diff === 0) dueLabel = `<div class="med-due due-today">Due today</div>`;
+      else dueLabel = `<div class="med-due ok">Due ${new Date(med.nextDue+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>`;
+    }
+    const statusClass = (status==='due-today'||status==='overdue') ? status : '';
+    return `<div class="med-card ${statusClass}" onclick="editMed(${med.id})">
+      <div style="flex:1;">
+        <div class="med-name">${esc(med.name)}</div>
+        <div class="med-meta">${med.dosage?esc(med.dosage)+' &middot; ':''}${FREQ_LABELS[med.frequency]||med.frequency}</div>
+        ${dueLabel}
+        ${med.notes ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;font-style:italic;">${esc(med.notes)}</div>` : ''}
+      </div>
+      ${(status==='due-today'||status==='overdue') ? `<button class="btn btn-green" style="font-size:12px;padding:8px 12px;white-space:nowrap;width:auto;" onclick="event.stopPropagation();markMedGiven(${pet.id},${med.id})">Given</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderVaccineTab(pet) {
+  const el = document.getElementById('detail-vaccines-content');
+  if (!el) return;
+  const vax = pet.vaccines||{};
+  const hasAny = Object.values(vax).some(Boolean);
+  if (!hasAny) {
+    el.innerHTML = `<div class="empty-state" style="padding:30px 0;"><div class="empty-icon">💉</div><h3>No vaccine records</h3><p>Edit this pet's profile to add vaccine records.</p></div>`;
+    return;
+  }
+  const rows = [
+    ['Rabies', vax.rabies],
+    ['DHPP / FVRCP', vax.core],
+    ['Bordetella', vax.bordetella],
+    ['Leptospirosis', vax.lepto],
+    vax.other ? ['Other', vax.other] : null,
+  ].filter(r => r && r[1]);
+
+  el.innerHTML = `<div class="card" style="padding:16px 20px;">
+    ${rows.map(([lbl,val]) => {
+      const d = /^\d{4}-\d{2}-\d{2}$/.test(val) ? new Date(val+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : val;
+      return `<div class="detail-row"><span class="detail-label">${esc(lbl)}</span><span class="detail-value" style="color:var(--success);font-weight:600;">${esc(d)}</span></div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderDashboardReminders() {
+  const bannerEl = document.getElementById('med-reminder-banner');
+  if (!bannerEl) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dueMeds = [], overdueMeds = [];
+
+  pets.forEach(pet => {
+    if (!pet.meds) return;
+    pet.meds.forEach(med => {
+      if (!med.nextDue || med.frequency === 'as-needed') return;
+      const due = new Date(med.nextDue+'T12:00:00'); due.setHours(0,0,0,0);
+      const diff = Math.round((due - today) / (1000*60*60*24));
+      if (diff < 0) overdueMeds.push({petName:pet.name, medName:med.name, petId:pet.id, medId:med.id, diff});
+      else if (diff === 0) dueMeds.push({petName:pet.name, medName:med.name, petId:pet.id, medId:med.id});
+    });
+  });
+
+  if (!dueMeds.length && !overdueMeds.length) { bannerEl.style.display='none'; bannerEl.innerHTML=''; return; }
+  bannerEl.style.display = 'block';
+  let html = '';
+  if (overdueMeds.length) {
+    html += `<div class="reminder-banner danger"><div style="flex:1;">
+      <div style="font-weight:700;font-size:14px;color:var(--danger);margin-bottom:6px;">Overdue Medications</div>
+      ${overdueMeds.map(m => `<div style="font-size:13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span>${esc(m.petName)}: <strong>${esc(m.medName)}</strong> <span style="color:var(--danger);font-size:12px;">(${Math.abs(m.diff)}d overdue)</span></span>
+        <button onclick="markMedGiven(${m.petId},${m.medId})" style="background:var(--danger);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;margin-left:8px;">Mark Given</button>
+      </div>`).join('')}
+    </div></div>`;
+  }
+  if (dueMeds.length) {
+    html += `<div class="reminder-banner warn"><div style="flex:1;">
+      <div style="font-weight:700;font-size:14px;color:var(--warning);margin-bottom:6px;">Medication Due Today</div>
+      ${dueMeds.map(m => `<div style="font-size:13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span>${esc(m.petName)}: <strong>${esc(m.medName)}</strong></span>
+        <button onclick="markMedGiven(${m.petId},${m.medId})" style="background:var(--warning);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;margin-left:8px;">Mark Given</button>
+      </div>`).join('')}
+    </div></div>`;
+  }
+  bannerEl.innerHTML = html;
+}
+
+/* ================================================================
+   HISTORY & PROFILE
+   ================================================================ */
+function renderHistoryPage() {
+  const el = document.getElementById('history-list');
+  if (!history.length) {
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><h3>No checks yet</h3><p>Start a symptom check and your results will appear here.</p></div>';
+    return;
+  }
+  el.innerHTML = history.map(histHTML).join('');
+}
+
+function viewHistoryItem(id) {
+  const h = history.find(item => item.id === id);
+  if (!h) return;
+  const lvl = h.level||'green';
+  const lvlBg = {red:'#7A1E1E',yellow:'#7A5200',green:'#2D5A3D'}[lvl]||'#2D5A3D';
+  const lvlLabel = {red:'Emergency — Go to a Vet Now',yellow:'Call a Vet Today',green:'Monitor at Home'}[lvl];
+  const lvlIcon = {red:'🚨',yellow:'⚠️',green:'✅'}[lvl];
+  const dt = h.date ? new Date(h.date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : '';
+  const timeStr = h.date ? new Date(h.date).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}) : '';
+  const pet = pets.find(p => p.name === (h.petName||''));
+
+  const html = `
+    <div style="background:${lvlBg};padding:28px 20px 32px;text-align:center;">
+      <div style="font-size:44px;margin-bottom:10px;">${lvlIcon}</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.65);text-transform:uppercase;margin-bottom:8px;">${esc(lvl.toUpperCase())}</div>
+      <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:8px;">${esc(h.condition||'')}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.8);">${esc(lvlLabel)}</div>
+    </div>
+    <div style="padding:20px 20px 0;">
+      <div style="display:flex;align-items:center;gap:12px;background:var(--dark);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;">
+        <span style="font-size:28px;">${pet ? (SPECIES_EMOJI[pet.species]||'🐾') : '🐾'}</span>
+        <div style="flex:1;">
+          <div style="color:var(--white);font-weight:700;font-size:16px;">${esc(h.petName||'My Pet')}</div>
+          ${pet ? `<div style="color:#C9A880;font-size:13px;">${cap(pet.species)}${pet.breed?' · '+esc(pet.breed):''}</div>` : ''}
+        </div>
+        <div style="text-align:right;">
+          <div style="color:#C9A880;font-size:12px;">${esc(dt)}</div>
+          <div style="color:#A07850;font-size:11px;">${esc(timeStr)}</div>
+        </div>
+      </div>
+      ${h.symptoms ? `
+      <div class="section-title">Reported Symptoms</div>
+      <div class="card card-beige" style="padding:14px 16px;margin-bottom:20px;">
+        <p style="font-size:14px;line-height:1.6;color:var(--body);">${esc(h.symptoms)}</p>
+      </div>` : ''}
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+        ${pet ? `<button class="btn btn-primary" onclick="startTriage(${pet.id})">Run New Check for ${esc(pet.name)}</button>` : `<button class="btn btn-primary" onclick="startTriage(null)">Run a New Check</button>`}
+        <button class="btn btn-secondary" onclick="showPage('history')">← Back to History</button>
+      </div>
+    </div>`;
+
+  document.getElementById('history-detail-content').innerHTML = html;
+  showPage('history-detail');
+}
+
+function renderProfile() {
+  document.getElementById('profile-name').textContent = getData('name','');
+  renderProfilePets();
+}
+
+function renderProfilePets() {
+  const el = document.getElementById('profile-pets-list');
+  if (!el) return;
+  if (!pets.length) {
+    el.innerHTML = `<div class="card" style="padding:20px;text-align:center;margin-bottom:4px;">
+      <div style="font-size:36px;margin-bottom:10px;">🐾</div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:14px;">No pets added yet.</p>
+      <button class="btn btn-primary" style="width:auto;padding:10px 24px;" onclick="showPage('add-pet')">+ Add Your First Pet</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML = pets.map(p => {
+    const avatarInner = p.photo
+      ? `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+      : (SPECIES_EMOJI[p.species]||'🐾');
+    const meds = p.meds && p.meds.length ? p.meds.length + ' med' + (p.meds.length !== 1 ? 's' : '') : '';
+    const vaxCount = p.vaccines ? Object.values(p.vaccines).filter(Boolean).length : 0;
+    const vaxStr = vaxCount ? vaxCount + ' vaccine' + (vaxCount !== 1 ? 's' : '') : '';
+    const meta2 = [meds, vaxStr].filter(Boolean).join(' · ');
+    return `<div class="pet-card" onclick="viewPetDetail(${p.id})">
+      <div class="pet-avatar">${avatarInner}</div>
+      <div class="pet-info">
+        <div class="pet-name">${esc(p.name)}</div>
+        <div class="pet-meta">${cap(p.species)}${p.breed?' · '+esc(p.breed):''}${p.age_years!=null?' · '+p.age_years+' yr':''}</div>
+        ${meta2 ? `<div class="pet-meta" style="margin-top:2px;font-size:12px;color:var(--primary);">${esc(meta2)}</div>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:12px;font-weight:700;color:var(--muted);">Edit</span>
+        <span style="color:var(--muted);font-size:18px;">›</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearData() {
+  if (!confirm('Clear all pets and history? This cannot be undone.')) return;
+  localStorage.removeItem('vr_data');
+  pets=[]; history=[];
+  showToast('Data cleared');
+  showPage('setup');
+}
+
+/* ================================================================
+   UTILS
+   ================================================================ */
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function cap(s) { return s ? s.charAt(0).toUpperCase()+s.slice(1) : ''; }
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background = type==='error'?'#7A1E1E':type==='success'?'#2D5A3D':'#1E0F06';
+  t.className='show';
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.className='', 3000);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key!=='Enter') return;
+  const pg = document.querySelector('.page.active');
+  if (pg&&pg.id==='page-setup') doSetup();
+  if (pg&&pg.id==='page-vet-login') doVetLogin();
+});
+
+init();
+
+// ── PWA Setup ──────────────────────────────────────────────────────────────
+(function initPWA() {
+  function generateIcon(size) {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = size;
+    const ctx = cv.getContext('2d');
+    const sc = size / 100;
+
+    // Rounded dark background
+    ctx.fillStyle = '#1E0F06';
+    ctx.beginPath();
+    const r = size * 0.18;
+    ctx.moveTo(r, 0); ctx.lineTo(size - r, 0);
+    ctx.arcTo(size, 0, size, r, r);
+    ctx.lineTo(size, size - r);
+    ctx.arcTo(size, size, size - r, size, r);
+    ctx.lineTo(r, size);
+    ctx.arcTo(0, size, 0, size - r, r);
+    ctx.lineTo(0, r);
+    ctx.arcTo(0, 0, r, 0, r);
+    ctx.closePath();
+    ctx.fill();
+
+    // Paw color
+    ctx.fillStyle = '#E07A3A';
+    function ell(cx, cy, rx, ry) {
+      ctx.beginPath();
+      ctx.ellipse(cx * sc, cy * sc, rx * sc, ry * sc, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ell(38, 20, 12, 14);
+    ell(62, 20, 12, 14);
+    ell(19, 39, 11, 13);
+    ell(81, 39, 11, 13);
+    ell(50, 70, 28, 22);
+
+    // VR text
+    ctx.fillStyle = '#1E0F06';
+    ctx.font = `900 ${Math.round(size * 0.22)}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('VR', size * 0.5, size * 0.705);
+
+    return cv.toDataURL('image/png');
+  }
+
+  try {
+    const icon192 = generateIcon(192);
+    const icon512 = generateIcon(512);
+
+    // Apple touch icon
+    const appleIcon = document.getElementById('apple-touch-icon');
+    if (appleIcon) appleIcon.href = icon192;
+
+    // Inject manifest
+    const manifest = {
+      name: 'VetReady',
+      short_name: 'VetReady',
+      description: 'Pet Health Triage — Know when to wait. Know when to go.',
+      start_url: '.',
+      display: 'standalone',
+      background_color: '#1E0F06',
+      theme_color: '#C85A17',
+      orientation: 'portrait-primary',
+      icons: [
+        { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+        { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+      ]
+    };
+    const mBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+    const mLink = document.getElementById('pwa-manifest');
+    if (mLink) mLink.href = URL.createObjectURL(mBlob);
+  } catch(e) { /* icon gen not critical */ }
+
+  // Service worker (works on HTTPS / localhost)
+  if ('serviceWorker' in navigator) {
+    const sw = `
+const CACHE = 'vetready-v1';
+self.addEventListener('install', e => { self.skipWaiting(); });
+self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+    if (res && res.status === 200 && res.type === 'basic') {
+      const clone = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+    }
+    return res;
+  })));
+});`;
+    try {
+      const swBlob = new Blob([sw], { type: 'text/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(swBlob), { scope: './' })
+        .catch(() => {});
+    } catch(e) {}
+  }
+})();
+
+</script>
+</body>
+</html>
