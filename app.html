@@ -26,7 +26,30 @@
 -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, getDocs, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCyCRXWr8glMFHgpShyHRqn9tr9jhKJx0o",
+    authDomain: "vetready-7074c.firebaseapp.com",
+    projectId: "vetready-7074c",
+    storageBucket: "vetready-7074c.firebasestorage.app",
+    messagingSenderId: "400838123990",
+    appId: "1:400838123990:web:469e2a1365ac0017d84477",
+  };
+
+  const VAPID_KEY = "BPvRa1oFi6UwPnxz9bSO4NQ48mneooLc9RC0NE4tzpfyGEdbfVuSdXMbii2UmvpDmcwI6jAsZNa02CufQtJOCkk";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const messaging = getMessaging(app);
+
+  // all the functions below (clinicSignUp, clinicLogin, etc.) go inside this same <script type="module"> block
+</script>>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>VetReady — Pet Health Triage</title>
